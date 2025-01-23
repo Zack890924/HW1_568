@@ -1,0 +1,19 @@
+<!-- templates/home.html -->
+{% extends 'base.html' %}
+
+{% block title %}首頁 | Ride Sharing Service{% endblock %}
+
+{% block content %}
+<div class="jumbotron text-center">
+    <h1 class="display-4">Ride Sharing Service</h1>
+    <p class="lead">This is a simple platform。</p>
+    <hr class="my-4">
+    {% if user.is_authenticated %}
+        <p>welcome，{{ user.username }}！</p>
+
+    {% else %}
+
+       <p>welcome，user！</p>
+    {% endif %}
+</div>
+{% endblock %}
