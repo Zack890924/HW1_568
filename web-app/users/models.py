@@ -20,10 +20,6 @@ class UserProfile(models.Model):
             img.save(self.image.path)
 class DriverProfile(models.Model):
     driver = models.OneToOneField(User, on_delete=models.CASCADE)
-    is_driver = models.BooleanField(default=True)
-    name = models.CharField(max_length=100)
-    phone = models.CharField(max_length=20)
-    image = models.ImageField(default='default.jpg', upload_to='profile_pics')
     vehicleType = models.CharField(max_length=100)
     licensePlate = models.CharField(max_length=100)
     maxPassengers = models.IntegerField()

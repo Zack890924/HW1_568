@@ -20,8 +20,11 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = ['name', 'is_driver', 'address', 'phone', 'image']
+        widgets = {
+            'is_driver': forms.CheckboxInput(),
+        }
 
 class DriverProfileForm(forms.ModelForm):
     class Meta:
         model = DriverProfile
-        fields = ['name', 'is_driver', 'phone', 'image', 'vehicleType', 'licensePlate', 'maxPassengers']
+        fields = ['vehicleType', 'licensePlate', 'maxPassengers']

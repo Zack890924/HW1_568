@@ -13,9 +13,21 @@
                         <h2 class="card-title text-center mb-4"></h2>
                         <form method="POST">
                             {% csrf_token %}
-                            {{ form|crispy }}
+<!--                        <user register form>-->
+                            <h5>Account Information</h5>
+                            {{ user_form|crispy }}
+
+<!--                            <profile register form>-->
+                            <h5 class="mt-4">Profile Information</h5></h5>
+                            {{ profile_form|crispy }}
+
+<!--                            driver register form-->
+                           <div id = "driver_form" class="mt-4" style="display: none">
+                                <h5>Driver Information</h5>
+                                {{ driver_form|crispy }}
+                           </div>
                             <div class="form-group">
-                                <button class="btn btn-outline-info w-100" type="submit">Sign Up</button>
+                                <button class="btn btn-outline-info" type="submit">Sign Up</button>
                             </div>
 
                         </form>
@@ -32,4 +44,29 @@
     </div>
 
 </section>
+
+
+
+
+
+document.addEventLister('DOMContentLoaded', () => {
+    const isDriver = document.getElementById('id_is_driver');
+    const driverForm = document.getElementById('driver_form');
+
+    if(!isDriver || !driverForm) {
+        return;
+    }
+    const toggleDriverForm = () => {
+        driverForm.style.display = isDriver.checked ? 'block' : 'none';
+    };
+
+    toggleDriverForm();
+
+    isDriver.addEventListener('change', toggleDriverForm);
+});
+
+
+
+
+
 {% endblock %}
