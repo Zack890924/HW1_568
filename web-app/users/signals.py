@@ -9,9 +9,9 @@ def create_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
 
-@receiver(post_save, sender=User)
-def save_profile(sender, instance, **kwargs):
-    if instance.is_driver:
-        DriverProfile.objects.get_or_create(driver=instance.user)
-    else:
-        DriverProfile.objects.filter(driver=instance.user).delete()
+# @receiver(post_save, sender=User)
+# def save_profile(sender, instance, **kwargs):
+#     if instance.is_driver:
+#         DriverProfile.objects.get_or_create(driver=instance.user)
+#     else:
+#         DriverProfile.objects.filter(driver=instance.user).delete()

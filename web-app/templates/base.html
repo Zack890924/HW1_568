@@ -31,10 +31,10 @@
                     </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="#">建立 Ride</a>
+                            <a class="nav-link" href="#">My Ride</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">搜尋 Ride</a>
+                            <a class="nav-link" href="#">Search Ride</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -42,7 +42,12 @@
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="/">Logout</a>
+                            <form action="{% url 'users:logout' %}" method="POST" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-link nav-link" style="display: inline; padding: 0;">
+                                  Logout
+                                </button>
+                            </form>
                         </li>
                         {% if user.userprofile.user_type == 'admin' %}
                             <li class="nav-item">
@@ -51,10 +56,10 @@
                         {% endif %}
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="/">Login</a>
+                            <a class="nav-link" href="{% url 'users:login' %}">Login</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/">Sign Up</a>
+                            <a class="nav-link" href="{% url 'users:register' %}">Sign Up</a>
                         </li>
                     {% endif %}
                 </ul>

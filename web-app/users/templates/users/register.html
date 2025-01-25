@@ -49,21 +49,26 @@
 
 
 
-document.addEventLister('DOMContentLoaded', () => {
-    const isDriver = document.getElementById('id_is_driver');
-    const driverForm = document.getElementById('driver_form');
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const isDriver = document.getElementById('id_is_driver');
+        const driverForm = document.getElementById('driver_form');
 
-    if(!isDriver || !driverForm) {
-        return;
-    }
-    const toggleDriverForm = () => {
-        driverForm.style.display = isDriver.checked ? 'block' : 'none';
-    };
+        if (!isDriver || !driverForm) {
+            return;
+        }
 
-    toggleDriverForm();
+        const toggleDriverForm = () => {
+            driverForm.style.display = isDriver.checked ? 'block' : 'none';
+        };
 
-    isDriver.addEventListener('change', toggleDriverForm);
-});
+        // 初始狀態
+        toggleDriverForm();
+
+        // 監聽變更事件
+        isDriver.addEventListener('change', toggleDriverForm);
+    });
+</script>
 
 
 

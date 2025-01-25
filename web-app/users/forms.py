@@ -19,7 +19,7 @@ class UserUpdateForm(forms.ModelForm):
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
-        fields = ['name', 'is_driver', 'address', 'phone', 'image']
+        fields = ['is_driver', 'address', 'phone']
         widgets = {
             'is_driver': forms.CheckboxInput(),
         }

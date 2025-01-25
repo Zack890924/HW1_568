@@ -24,7 +24,7 @@ def register(request):
                     messages.error(request, 'Driver form is not valid')
                     return redirect('/')
 
-            username = form.cleaned_data.get('username')
+            username = username = user_form.cleaned_data.get('username')
             messages.success(request, f'Account created for {username}!')
             return redirect('/')
     else :
@@ -37,6 +37,8 @@ def register(request):
         'driver_form': driver_form
     }
     return render(request, 'users/register.html', context)
+
+
 
 
 
