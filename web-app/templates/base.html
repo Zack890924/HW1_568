@@ -1,6 +1,6 @@
 <!-- templates/base.html -->
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,6 +35,13 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#">Search Ride</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Create Ride</a>
+                        </li>
+                        <li>
+<!--                            TODO: the naming needs improvement-->
+                            <a class="nav-link" href="#">Ride List</a>
                         </li>
                         {% if not user.userprofile.is_driver %}
                             <li class="nav-item">

@@ -10,7 +10,7 @@ class UserProfile(models.Model):
     phone = models.CharField(max_length=20)
     # image = models.ImageField(default='default.jpg', upload_to='profile_pics',blank=True, null=True)
     def __str__(self):
-        return f'{self.user.username} Profile'
+        return f'{self.user.name} Profile'
     # def save (self, *args, **kwargs):
     #     super().save(*args, **kwargs)
     #     img = Image.open(self.image.path)
@@ -24,6 +24,6 @@ class DriverProfile(models.Model):
     licensePlate = models.CharField(max_length=100)
     maxPassengers = models.IntegerField()
     def __str__(self):
-        return f'{self.driver.username} Profile'
+        return f'{self.driver.name} Profile'
 
 
