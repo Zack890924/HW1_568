@@ -38,15 +38,15 @@ class Ride(models.Model):
 
 class RideShare(models.Model):
     ride = models.ForeignKey(Ride, on_delete=models.CASCADE, related_name='ride_share')
-    user = models.ForeignKey('users.UserProfile', on_delete=models.CASCADE, related_name='user_share')
+    sharer = models.ForeignKey('users.UserProfile', on_delete=models.CASCADE, related_name='user_share')
     passenger = models.PositiveIntegerField(default=1)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['ride', 'user'], name='unique_user_ride')
+            models.UniqueConstraint(fields=['ride', 'sharer'], name='unique_sharer_ride')
         ]
 
     def __str__(self):
-        return f"{self.ride} => {self.user.name} => {self.passenger}"
+        return f"{self.ride} => {self.sharer.name} => {self.passenger}"
 
 

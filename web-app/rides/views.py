@@ -4,25 +4,27 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 
+
 from .models import Ride, RideShare
 from django.shortcuts import render
-from django.views.generic import ListView, CreateView
+from django.views.generic import ListView, CreateView, UpdateView
 from .forms import RideRequestForm, DriverSearchForm, SearchRideShareForm, BaseRideShareForm, RideShareForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+from .mixins import DriverRequiredMixin, OwnerRequiredMixin
 # Create your views here.
 class OpenRideListView(ListView):
     model = Ride
     template_name = 'rides/ride_list.html'
     context_object_name = 'rides_list'
     paginate_by = 5
-    ordering = ['-scheduled_datetime']
+    ordering = ['-created_at']
 
     def get_queryset(self):
         return super().get_queryset().filter(status=Ride.OPEN)
     # TODO destination constraint passenger size... to be added
 
 
-class MyRideListView(ListView):
+class MyRidesView(ListView):
     model = Ride
     template_name = 'rides/my_rides_list.html'
     context_object_name = 'rides_list'
@@ -30,7 +32,21 @@ class MyRideListView(ListView):
     ordering = ['-scheduled_datetime']
 
     def get_queryset(self):
-        return super().get_queryset().filter(owner=self.request.user)
+        user = self.request.user
+        owned = Ride.objects.filter(owner=user.userProfile).exclude(status=Ride.COMPLETED)
+        sharer = RideShare.objects.filter(user=user.userProfile).exclude(status=Ride.COMPLETED).select_related('ride_id')
+        driven = Ride.object.filter(driver=user.driverProfile.driver).exclude(status=Ride.COMPLETED)
+        return owned | sharer | driven
+
+
+
+
+class RideDetailView(ListView):
+    model = Ride
+    template_name = 'rides/ride_detail.html'
+    context_object_name = 'ride'
+    ordering = '[-created_at]'
+
 
 
 
@@ -43,40 +59,130 @@ class RideCreateView(LoginRequiredMixin, CreateView):
 
     # logic for form created successfully
     def form_valid(self, form):
-        form.instance.owner = self.request.user
+        form.instance.owner.user = self.request.user
         form.instance.status = Ride.OPEN
         return super().form_valid(form)
 
 
-@login_required()
-def edit_ride(request, ride_id):
-    ride = Ride.get_object_or_404(Ride, id = ride_id, owner = request.user)
-    if ride.status != Ride.OPEN:
-        messages.error(request, 'Cannot edit the ride')
-        return redirect('rides:ride-list')
-
-    if request.method == 'POST':
-        form = RideRequestForm(request.POST, instance=ride)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Ride updated successfully')
+class RideEditView(LoginRequiredMixin, OwnerRequiredMixin, UpdateView):
+    model = Ride
+    form_class = RideRequestForm
+    template_name = 'rides/rides_edit.html'
+    success_url = reverse_lazy('rides: my_ride_list')
+    def form_valid(self, form):
+        if form.instance.status != Ride.OPEN:
+            messages.error(self.request, "Cannot edit this form")
+            # TODO direct location needs to be improve
             return redirect('rides:ride-list')
-        else :
-            messages.error(request, 'Ride form is not valid')
-    else :
-        form = RideRequestForm(instance=ride)
+        return super().form_valid(form)
 
-    return render(request, 'rides/ride_edit.html', {'form': form})
+
+# Sharer search for ride
+@login_required()
+def ride_search(request):
+    form = SearchRideShareForm(request.GET or None)
+    rides = []
+
+    if form.is_valid():
+        destination = form.cleaned_data['destination']
+        earliest_date = form.cleaned_data['earliest_date']
+        latest_date = form.cleaned_data['latest_date']
+        earliest_time = form.cleaned_data['earliest_time']
+        latest_time = form.cleaned_data['latest_time']
+        passengers_size = form.cleaned_data['passengers_size'] or 1
+
+        rides = Ride.objects.filter(status = 'OPEN', can_share = True)
+        if destination:
+            rides = rides.filter(destination__icontains=destination)
+        if earliest_date:
+            rides = rides.filter(scheduled_datetime__gte=earliest_date)
+        if latest_date:
+            rides = rides.filter(scheduled_datetime__lte=latest_date)
+        if earliest_time:
+            rides = rides.filter(scheduled_datetime__gte=earliest_time)
+        if latest_time:
+            rides = rides.filter(scheduled_datetime__lte=latest_time)
+        if passengers_size:
+            rides = rides.filter(owner_passengers__gte=passengers_size)
+
+        rides = rides.order_by('-created at')
+    return render(request, 'rides/ride_search.html', {'rides': rides, 'form': form})
 
 
 @login_required()
-def my_rides(request):
-    user = request.user
+def ride_join(request, pk):
+    ride = get_object_or_404(Ride, pk=pk, status='OPEN', can_share=True)
+    if request.method == 'POST':
+        form = RideShareForm(request.POST)
+        if form.is_valid():
+            ride_share = form.save(commit=False)
+            ride_share.ride = ride
+            ride_share.user = request.user.userprofile
+            try:
+                ride_share.save()
+                messages.success(request, 'You have joined the ride successfully')
+            except InterruptedError:
+                messages.error(request, 'You have already joined the ride')
+            return redirect('rides:ride-list', pk = ride.pk)
+    else:
+        form = RideShareForm()
+    return render(request, 'rides/ride_join.html', {'form': form, 'ride': ride})
 
-    owned = Ride.objects.filter(owner=user).exclude(status=Ride.COMPLETED)
-    shared = RideShare.objects.filter(user=user).exclude(ride__status=Ride.COMPLETED)
-    driver = Ride.objects.filter(driver=user).exclude(status=Ride.COMPLETED)
+@login_required()
+def driver_search_ride(request):
+    driver_profile = getattr(request.user, 'driverprofile', None)
+    if driver_profile is None:
+        messages.error(request, 'You are not a driver')
+        return redirect('rides:ride-list')
+    form = DriverSearchForm(request.GET or None)
+    valid_rides = []
+    if form.is_valid():
+        destination = form.cleaned_data['destination']
 
-    return render(request, 'rides/my_rides_list.html', {'owned': owned, 'shared': shared, 'driver': driver})
+
+        rides = Ride.objects.filter(status = 'OPEN', can_share = True)
+        if destination:
+            rides = rides.filter(destination__icontains=destination)
+            for ride in rides:
+                if ride.vehicle_type_request and driver_profile.vehicle_type != ride.vehicle_type_request:
+                    continue
+                if ride.total_amount_people() > driver_profile.capacity:
+                    continue
+                # TODO Special request
+                valid_rides.append(ride)
+    return render(request,
+                  'rides/driver_search.html',
+                  {'rides': valid_rides, 'form': form}
+                  )
+
+
+@login_required()
+def driver_claim_ride(request, pk):
+    driver_profile = getattr(request.user, 'driverprofile', None)
+    if driver_profile is None:
+        messages.error(request, 'You are not a driver')
+        return redirect('rides:ride-list')
+    ride = get_object_or_404(Ride, pk=pk, status='OPEN')
+    # double check
+    if ride.total_amount_people() > driver_profile.capacity:
+        messages.error(request, 'Passengers size exceed total capacity')
+        return redirect('rides:ride-list')
+    ride.driver = request.user.driverprofile
+    ride.status = 'CONFIRMED'
+    ride.save()
+    messages.success(request, f"You have successfully claimed ride #{ride.id}!")
+    return redirect('rides:ride-list')
+
+
+@login_required()
+def driver_complete_ride(request, pk):
+    ride = get_object_or_404(Ride, pk=pk, status='CONFIRMED', driver = request.user.driverprofile)
+    if request.method == 'POST':
+        ride.status = 'COMPLETED'
+        ride.save()
+        messages.success(request, f"You have successfully completed ride #{ride.id}!")
+        return redirect('rides:ride-list')
+    return render(request, 'rides/driver_complete.html', {'ride': ride})
+
 
 

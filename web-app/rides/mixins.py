@@ -16,7 +16,7 @@ class DriverRequiredMixin(UserPassesTestMixin):
 class OwnerRequiredMixin(UserPassesTestMixin):
     # check if the user is the owner
     def test_func(self):
-        return self.request.user == self.get_object().owner
+        return self.request.user == self.get_object().owner.user
     def handle_no_permission(self):
         messages.error(self.request, 'You must be the owner to access this page')
         return redirect('rides:ride-list')
@@ -28,4 +28,9 @@ class RideStatusOpenMixin(UserPassesTestMixin):
     def handle_no_permission(self):
         messages.error(self.request, 'The ride is not open')
         return redirect('rides:ride-list')
+
+
+
+
+
 
