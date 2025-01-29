@@ -7,7 +7,7 @@ from django.urls import reverse_lazy
 
 from .models import Ride, RideShare
 from django.shortcuts import render
-from django.views.generic import ListView, CreateView, UpdateView
+from django.views.generic import ListView, CreateView, UpdateView, DetailView
 from .forms import RideRequestForm, DriverSearchForm, SearchRideShareForm, BaseRideShareForm, RideShareForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .mixins import DriverRequiredMixin, OwnerRequiredMixin
@@ -33,19 +33,19 @@ class MyRidesView(ListView):
 
     def get_queryset(self):
         user = self.request.user
-        owned = Ride.objects.filter(owner=user.userProfile).exclude(status=Ride.COMPLETED)
-        sharer = RideShare.objects.filter(user=user.userProfile).exclude(status=Ride.COMPLETED).select_related('ride_id')
-        driven = Ride.object.filter(driver=user.driverProfile.driver).exclude(status=Ride.COMPLETED)
-        return owned | sharer | driven
+        owned = Ride.objects.filter(owner=user.userProfile).exclude(status=Ride.status.COMPLETED)
+        sharer = RideShare.objects.filter(user=user.userProfile).exclude(status=Ride.status.COMPLETED).select_related('ride_id')
+        driven = Ride.objects.filter(driver=user.driverProfile.driver).exclude(status=Ride.status.COMPLETED)
+        return owned.union(sharer, driven)
 
 
 
 
-class RideDetailView(ListView):
+class RideDetailView(DetailView):
     model = Ride
     template_name = 'rides/ride_detail.html'
     context_object_name = 'ride'
-    ordering = '[-created_at]'
+
 
 
 
@@ -59,8 +59,8 @@ class RideCreateView(LoginRequiredMixin, CreateView):
 
     # logic for form created successfully
     def form_valid(self, form):
-        form.instance.owner.user = self.request.user
-        form.instance.status = Ride.OPEN
+        form.instance.owner.user = self.request.user.userProfile
+        form.instance.status = Ride.status.OPEN
         return super().form_valid(form)
 
 
@@ -70,7 +70,7 @@ class RideEditView(LoginRequiredMixin, OwnerRequiredMixin, UpdateView):
     template_name = 'rides/rides_edit.html'
     success_url = reverse_lazy('rides: my_ride_list')
     def form_valid(self, form):
-        if form.instance.status != Ride.OPEN:
+        if form.instance.status != Ride.status.OPEN:
             messages.error(self.request, "Cannot edit this form")
             # TODO direct location needs to be improve
             return redirect('rides:ride-list')
@@ -91,7 +91,7 @@ def ride_search(request):
         latest_time = form.cleaned_data['latest_time']
         passengers_size = form.cleaned_data['passengers_size'] or 1
 
-        rides = Ride.objects.filter(status = 'OPEN', can_share = True)
+        rides = Ride.objects.filter(status = 'OPEN', can_shared = True)
         if destination:
             rides = rides.filter(destination__icontains=destination)
         if earliest_date:
@@ -111,7 +111,7 @@ def ride_search(request):
 
 @login_required()
 def ride_join(request, pk):
-    ride = get_object_or_404(Ride, pk=pk, status='OPEN', can_share=True)
+    ride = get_object_or_404(Ride, pk=pk, status='OPEN', can_shared=True)
     if request.method == 'POST':
         form = RideShareForm(request.POST)
         if form.is_valid():
@@ -140,7 +140,7 @@ def driver_search_ride(request):
         destination = form.cleaned_data['destination']
 
 
-        rides = Ride.objects.filter(status = 'OPEN', can_share = True)
+        rides = Ride.objects.filter(status = 'OPEN', can_shared = True)
         if destination:
             rides = rides.filter(destination__icontains=destination)
             for ride in rides:

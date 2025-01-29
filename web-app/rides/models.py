@@ -5,18 +5,18 @@ from datetime import datetime
 
 class Ride(models.Model):
     class Status(models.TextChoices):
-        PENDING = 'PENDING', 'Pending'
+        # PENDING = 'PENDING', 'Pending'
         OPEN = 'OPEN', 'Open'
-        ACCEPTED = 'ACCEPTED', 'Accepted'
+        # ACCEPTED = 'ACCEPTED', 'Accepted'
         CONFIRMED = 'CONFIRMED', 'Confirmed'
         COMPLETED = 'COMPLETED', 'Completed'
 
 
     owner = models.ForeignKey('users.UserProfile', on_delete=models.CASCADE, related_name='own_ride')
-    driver = models.ForeignKey('users.DriverProfile', on_delete=models.CASCADE, related_name= 'drive_ride', null=True, blank=True)
+    driver = models.ForeignKey('users.DriverProfile', on_delete=models.SET_NULL, null=True, related_name= 'drive_ride', blank=True)
     # passenger = models.ForeignKey('users.UserProfile', on_delete=models.CASCADE, related_name='passenger_ride', null=True, blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.OPEN)
-    arrived_time = models.DateTimeField()
+    # arrived_time = models.DateTimeField()
     destination = models.CharField(max_length=100)
     date = models.DateField()
     time = models.TimeField()
@@ -26,8 +26,11 @@ class Ride(models.Model):
     special_request = models.CharField(max_length=100, null=True, blank=True)
     vehicle_type_request = models.CharField(max_length=100, null=True, blank=True)
 
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     def total_amount_people(self):
-        return self.owner_passengers + sum(ride_share.passenger for ride_share in self.ride_share.all())
+        return self.owner_passengers + sum(rs.passenger for rs in self.ride_share.all())
 
     def scheduled_datetime(self):
         return datetime.combine(self.date, self.time)
