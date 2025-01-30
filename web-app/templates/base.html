@@ -31,7 +31,7 @@
                     </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="#">My Ride</a>
+                            <a class="nav-link" href="{% url 'rides:my-ride-list' %}">My Ride</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#">Search Ride</a>
@@ -41,7 +41,7 @@
                         </li>
                         <li>
 <!--                            TODO: the naming needs improvement-->
-                            <a class="nav-link" href="#">Ride List</a>
+                            <a class="nav-link" href="{% url 'rides:ride-list' %}">Ride List</a>
                         </li>
                         {% if not user.userprofile.is_driver %}
                             <li class="nav-item">

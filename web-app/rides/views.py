@@ -36,9 +36,20 @@ class MyRidesView(ListView):
 
     def get_queryset(self):
         user = self.request.user
-        owned = Ride.objects.filter(owner=user.userprofile).exclude(status=Ride.Status.COMPLETED)
-        sharer = RideShare.objects.filter(user=user.userprofile).exclude(status=Ride.Status.COMPLETED).select_related('ride_id')
-        driven = Ride.objects.filter(driver=user.driverProfile.driver).exclude(status=Ride.Status.COMPLETED)
+
+        user_profile = user.userprofile
+
+
+        owned = Ride.objects.filter(owner=user_profile).exclude(status=Ride.Status.COMPLETED)
+
+
+        sharer_rides = RideShare.objects.filter(sharer=user_profile).select_related('ride')
+        sharer = Ride.objects.filter(id__in=sharer_rides.values('ride_id')).exclude(status=Ride.Status.COMPLETED)
+
+        driven = Ride.objects.none()
+        if hasattr(user, 'driverprofile'):
+            driven = Ride.objects.filter(driver=user.driverprofile).exclude(status=Ride.Status.COMPLETED)
+
         return owned.union(sharer, driven)
 
 
