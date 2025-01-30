@@ -15,6 +15,10 @@
     {% if ride.driver %}
       <p><strong>Driver:</strong> {{ ride.driver.driver.username }} (capacity: {{ ride.driver.maxPassengers }})</p>
     {% endif %}
+
+    {% if ride.status == 'OPEN' and user.is_authenticated and user != ride.owner.userprofile %}
+      <a href="{% url 'rides:ride-join' ride.id %}" class="btn btn-primary">Join</a>
+    {% endif %}
   </div>
 </div>
 

@@ -7,7 +7,7 @@ from PIL import Image
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100, null=False, blank=False)
-    email = models.EmailField(unique=True, null=False, blank=False)
+    # email = models.EmailField(unique=True, null=False, blank=False)
     is_driver = models.BooleanField(default=False)
     address = models.CharField(max_length=100)
     phone = models.CharField(max_length=20)
