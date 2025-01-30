@@ -1,5 +1,8 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
+from django.db.models import F, Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
@@ -20,7 +23,7 @@ class OpenRideListView(ListView):
     ordering = ['-created_at']
 
     def get_queryset(self):
-        return super().get_queryset().filter(status=Ride.OPEN)
+        return super().get_queryset().filter(Q(status=Ride.Status.OPEN) | Q(status=Ride.Status.CLOSED))
     # TODO destination constraint passenger size... to be added
 
 
@@ -33,9 +36,9 @@ class MyRidesView(ListView):
 
     def get_queryset(self):
         user = self.request.user
-        owned = Ride.objects.filter(owner=user.userProfile).exclude(status=Ride.status.COMPLETED)
-        sharer = RideShare.objects.filter(user=user.userProfile).exclude(status=Ride.status.COMPLETED).select_related('ride_id')
-        driven = Ride.objects.filter(driver=user.driverProfile.driver).exclude(status=Ride.status.COMPLETED)
+        owned = Ride.objects.filter(owner=user.userprofile).exclude(status=Ride.Status.COMPLETED)
+        sharer = RideShare.objects.filter(user=user.userprofile).exclude(status=Ride.Status.COMPLETED).select_related('ride_id')
+        driven = Ride.objects.filter(driver=user.driverProfile.driver).exclude(status=Ride.Status.COMPLETED)
         return owned.union(sharer, driven)
 
 
@@ -55,12 +58,16 @@ class RideCreateView(LoginRequiredMixin, CreateView):
     model = Ride
     form_class = RideRequestForm
     template_name = 'rides/ride_create.html'
-    success_url = reverse_lazy('rides: my_ride_list')
+    # success_url = reverse_lazy('rides:my_ride_list')
+    success_url = reverse_lazy('home')
 
     # logic for form created successfully
     def form_valid(self, form):
-        form.instance.owner.user = self.request.user.userProfile
-        form.instance.status = Ride.status.OPEN
+        form.instance.owner = self.request.user.userprofile
+        if form.cleaned_data.get('can_shared'):
+            form.instance.status = Ride.Status.OPEN
+        else:
+            form.instance.status = Ride.Status.CLOSED
         return super().form_valid(form)
 
 
@@ -70,7 +77,7 @@ class RideEditView(LoginRequiredMixin, OwnerRequiredMixin, UpdateView):
     template_name = 'rides/rides_edit.html'
     success_url = reverse_lazy('rides: my_ride_list')
     def form_valid(self, form):
-        if form.instance.status != Ride.status.OPEN:
+        if form.instance.status != Ride.Status.OPEN:
             messages.error(self.request, "Cannot edit this form")
             # TODO direct location needs to be improve
             return redirect('rides:ride-list')
@@ -85,27 +92,30 @@ def ride_search(request):
 
     if form.is_valid():
         destination = form.cleaned_data['destination']
-        earliest_date = form.cleaned_data['earliest_date']
-        latest_date = form.cleaned_data['latest_date']
-        earliest_time = form.cleaned_data['earliest_time']
-        latest_time = form.cleaned_data['latest_time']
+        earliest_dt = form.cleaned_data['earliest_date']
+        latest_dt = form.cleaned_data['latest_date']
+        # earliest_time = form.cleaned_data['earliest_time']
+        # latest_time = form.cleaned_data['latest_time']
         passengers_size = form.cleaned_data['passengers_size'] or 1
 
-        rides = Ride.objects.filter(status = 'OPEN', can_shared = True)
+
+        rides = (Ride.objects.filter(status = 'OPEN', can_shared = True)
+                 .annotate(available_seats=F('driver__capacity') - 1 - F('owner_passengers')))
+
+
         if destination:
             rides = rides.filter(destination__icontains=destination)
-        if earliest_date:
-            rides = rides.filter(scheduled_datetime__gte=earliest_date)
-        if latest_date:
-            rides = rides.filter(scheduled_datetime__lte=latest_date)
-        if earliest_time:
-            rides = rides.filter(scheduled_datetime__gte=earliest_time)
-        if latest_time:
-            rides = rides.filter(scheduled_datetime__lte=latest_time)
-        if passengers_size:
-            rides = rides.filter(owner_passengers__gte=passengers_size)
 
-        rides = rides.order_by('-created at')
+        if earliest_dt:
+            rides = rides.filter(scheduled_datetime__gte=earliest_dt)
+        if latest_dt:
+            rides = rides.filter(scheduled_datetime__lte=latest_dt)
+
+        rides = rides.filter(available_seats__gte=passengers_size)
+
+
+
+        rides = rides.order_by('-created_at')
     return render(request, 'rides/ride_search.html', {'rides': rides, 'form': form})
 
 
@@ -156,6 +166,24 @@ def driver_search_ride(request):
                   )
 
 
+def send_email_for_ride(ride):
+    subject = f"Your ride {ride.id} has been claimed"
+    email_messages = f'''
+        Dear {ride.owner.name}, your ride to {ride.destination} has been claimed by a driver!
+        Ride detail: 
+            - Date: {ride.date}
+            - Time: {ride.time}
+            - Destination: {ride.destination}
+            - Vehicle type: {ride.vehicle_type}
+            - Driver: {ride.driver.name}
+    '''
+    recipients = [ride.owner.userprofile.email]
+    for ride_share in ride.ride_share.all():
+        recipients.append(ride_share.sharer.userprofile.email)
+
+    send_mail(subject, email_messages, settings.DEFAULT_FROM_EMAIL, recipients)
+
+
 @login_required()
 def driver_claim_ride(request, pk):
     driver_profile = getattr(request.user, 'driverprofile', None)
@@ -167,9 +195,13 @@ def driver_claim_ride(request, pk):
     if ride.total_amount_people() > driver_profile.capacity:
         messages.error(request, 'Passengers size exceed total capacity')
         return redirect('rides:ride-list')
+
     ride.driver = request.user.driverprofile
     ride.status = 'CONFIRMED'
     ride.save()
+
+
+    send_email_for_ride(ride)
     messages.success(request, f"You have successfully claimed ride #{ride.id}!")
     return redirect('rides:ride-list')
 

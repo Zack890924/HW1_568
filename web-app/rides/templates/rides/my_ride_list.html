@@ -1,0 +1,39 @@
+<!-- rides/templates/rides/my_ride_list.html -->
+
+<!-- templates/rides/ride_list.html -->
+{% extends 'base.html' %}
+{% block title %}Open Ride List{% endblock %}
+
+{% block content %}
+<h2>Open Rides</h2>
+{% if rides_list %}
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Destination</th>
+        <th>Scheduled Time</th>
+        <th>Owner</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for ride in rides_list %}
+      <tr>
+        <td>{{ ride.id }}</td>
+        <td>{{ ride.destination }}</td>
+        <td>{{ ride.scheduled_datetime|date:"Y-m-d H:i" }}</td>
+        <td>{{ ride.owner.name }}</td>
+        <td>{{ ride.get_status_display }}</td>
+        <td>
+          <a href="{% url 'rides:ride_detail' ride.id %}" class="btn btn-sm btn-info">Detail</a>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No open rides found.</p>
+{% endif %}
+{% endblock %}

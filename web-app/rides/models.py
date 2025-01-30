@@ -1,5 +1,8 @@
 from django.db import models
-from datetime import datetime
+from django.utils import timezone
+
+
+
 # Create your models here.
 
 
@@ -7,6 +10,7 @@ class Ride(models.Model):
     class Status(models.TextChoices):
         # PENDING = 'PENDING', 'Pending'
         OPEN = 'OPEN', 'Open'
+        CLOSED = 'CLOSED', 'Closed'
         # ACCEPTED = 'ACCEPTED', 'Accepted'
         CONFIRMED = 'CONFIRMED', 'Confirmed'
         COMPLETED = 'COMPLETED', 'Completed'
@@ -18,25 +22,21 @@ class Ride(models.Model):
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.OPEN)
     # arrived_time = models.DateTimeField()
     destination = models.CharField(max_length=100)
-    date = models.DateField()
-    time = models.TimeField()
+    scheduled_datetime = models.DateTimeField()
     owner_passengers = models.PositiveIntegerField(default=1)
     can_shared = models.BooleanField(default=False)
     # optional
     special_request = models.CharField(max_length=100, null=True, blank=True)
     vehicle_type_request = models.CharField(max_length=100, null=True, blank=True)
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def total_amount_people(self):
         return self.owner_passengers + sum(rs.passenger for rs in self.ride_share.all())
 
-    def scheduled_datetime(self):
-        return datetime.combine(self.date, self.time)
-
     def __str__(self):
-        return f"{self.owner.name} => {self.destination} {self.date} {self.time} {self.get_status_display()}"
+        return f"{self.owner.name} => {self.destination} {self.scheduled_datetime} {self.get_status_display()}"
 
 
 class RideShare(models.Model):

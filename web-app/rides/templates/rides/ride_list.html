@@ -1,2 +1,28 @@
-<!-- rides/templates/rides/ride_list.html -->
-
+<!-- templates/rides/ride_list.html -->
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Open Rides</h2>
+    <div class="list-group">
+        {% for ride in rides_list %}
+        <a href="{% url 'rides:ride-detail' ride.pk %}"
+           class="list-group-item list-group-item-action">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <h5>{{ ride.destination }}</h5>
+                    <small class="text-muted">
+                        {{ ride.scheduled_datetime|date:"Y-m-d H:i" }}
+<!--                        | Passengers: {{ ride.total_amount_people }}-->
+                    </small>
+                </div>
+                <span class="badge bg-{% if ride.status == 'OPEN' %}warning{% else %}success{% endif %}">
+                    {{ ride.get_status_display }}
+                </span>
+            </div>
+        </a>
+        {% empty %}
+        <div class="alert alert-info">No open rides available</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

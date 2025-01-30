@@ -1,1 +1,23 @@
 <!-- rides/templates/rides/ride_create.html -->
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header">
+            <h2>Create New Ride</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                    <a href="{% url 'rides:ride-list' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

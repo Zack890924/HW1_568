@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Ride Detail{% endblock %}
+{% block content %}
+<h2>Ride #{{ ride.id }} - {{ ride.get_status_display }}</h2>
+<div class="card">
+  <div class="card-body">
+    <p><strong>Destination:</strong> {{ ride.destination }}</p>
+    <p><strong>Scheduled Time:</strong> {{ ride.scheduled_datetime|date:"Y-m-d H:i" }}</p>
+    <p><strong>Owner:</strong> {{ ride.owner.name }}</p>
+    <p><strong>Passengers (Owner):</strong> {{ ride.owner_passengers }}</p>
+    <p><strong>Can Shared:</strong> {{ ride.can_shared }}</p>
+    <p><strong>Special Request:</strong> {{ ride.special_request }}</p>
+    <p><strong>Vehicle Type Request:</strong> {{ ride.vehicle_type_request }}</p>
+
+    {% if ride.driver %}
+      <p><strong>Driver:</strong> {{ ride.driver.driver.username }} (capacity: {{ ride.driver.maxPassengers }})</p>
+    {% endif %}
+  </div>
+</div>
+
+<h3 class="mt-4">Sharers</h3>
+<ul class="list-group">
+  {% for share in ride.ride_share.all %}
+    <li class="list-group-item">
+      {{ share.sharer.name }} (Party Size: {{ share.passenger }})
+    </li>
+  {% empty %}
+    <li class="list-group-item">No Sharers yet.</li>
+  {% endfor %}
+</ul>
+
+<!-- 若要編輯/完成 ride，可再判斷 user 是否 owner/driver -->
+{% endblock %}

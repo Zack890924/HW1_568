@@ -4,13 +4,14 @@ from PIL import Image
 # Create your models here.
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, null=False, blank=False)
+    email = models.EmailField(unique=True, null=False, blank=False)
     is_driver = models.BooleanField(default=False)
     address = models.CharField(max_length=100)
     phone = models.CharField(max_length=20)
     # image = models.ImageField(default='default.jpg', upload_to='profile_pics',blank=True, null=True)
     def __str__(self):
-        return f'{self.user.name} Profile'
+        return f'{self.name} Profile'
     # def save (self, *args, **kwargs):
     #     super().save(*args, **kwargs)
     #     img = Image.open(self.image.path)
