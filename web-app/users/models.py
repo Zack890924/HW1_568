@@ -22,11 +22,22 @@ class UserProfile(models.Model):
     #         img.thumbnail(output_size)
     #         img.save(self.image.path)
 class DriverProfile(models.Model):
+
+    VECHILE_TYPE = (
+        ('SUV', 'SUV'),
+        ('SEDAN', 'SEDAN'),
+        ('Hybrid', 'Hybrid'),
+        ('VAN', 'VAN'),
+        ('Truck', 'Truck'),
+        ('Coupes', 'Coupes'),
+        ('OTHER', 'OTHER'),
+
+    )
     driver = models.OneToOneField(User, on_delete=models.CASCADE)
     vehicleType = models.CharField(max_length=100)
     licensePlate = models.CharField(max_length=100)
     maxPassengers = models.IntegerField()
     def __str__(self):
-        return f'{self.driver.name} Profile'
+        return f'{self.driver.userprofile.name} Profile'
 
 

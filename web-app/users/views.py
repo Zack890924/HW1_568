@@ -21,6 +21,7 @@ def register(request):
 
                     profile = profile_form.save(commit=False)
                     profile.user = user
+                    profile.name = user.username
                     profile.save()
             except Exception as e:
                 messages.error(request, 'encountered error')

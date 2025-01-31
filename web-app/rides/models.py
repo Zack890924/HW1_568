@@ -8,10 +8,8 @@ from django.utils import timezone
 
 class Ride(models.Model):
     class Status(models.TextChoices):
-        # PENDING = 'PENDING', 'Pending'
         OPEN = 'OPEN', 'Open'
         CLOSED = 'CLOSED', 'Closed'
-        # ACCEPTED = 'ACCEPTED', 'Accepted'
         CONFIRMED = 'CONFIRMED', 'Confirmed'
         COMPLETED = 'COMPLETED', 'Completed'
 
