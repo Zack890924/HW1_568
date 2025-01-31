@@ -4,7 +4,6 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.db.models import F, Q
-from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 
@@ -12,7 +11,7 @@ from django.urls import reverse_lazy
 from .models import Ride, RideShare
 from django.shortcuts import render
 from django.views.generic import ListView, CreateView, UpdateView, DetailView
-from .forms import RideRequestForm, DriverSearchForm, SearchRideShareForm, BaseRideShareForm, RideShareForm
+from .forms import RideRequestForm, DriverSearchForm, SearchRideShareForm, RideShareForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .mixins import DriverRequiredMixin, OwnerRequiredMixin
 # Create your views here.
@@ -61,6 +60,17 @@ class RideDetailView(DetailView):
     template_name = 'rides/ride_detail.html'
     context_object_name = 'ride'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        if self.request.user.is_authenticated:
+            user_profile = self.request.user.userprofile
+            context['has_joined'] = self.object.ride_share.filter(sharer=user_profile).exists()
+        else:
+            context['has_joined'] = False
+
+        return context
+
 
 
 
@@ -87,7 +97,7 @@ class RideEditView(LoginRequiredMixin, OwnerRequiredMixin, UpdateView):
     model = Ride
     form_class = RideRequestForm
     template_name = 'rides/rides_edit.html'
-    success_url = reverse_lazy('rides: my_ride_list')
+    success_url = reverse_lazy('rides:my_ride_list')
     def form_valid(self, form):
         if form.instance.status != Ride.Status.OPEN:
             messages.error(self.request, "Cannot edit this form")
@@ -106,8 +116,6 @@ def ride_search(request):
         destination = form.cleaned_data['destination']
         earliest_dt = form.cleaned_data['earliest_date']
         latest_dt = form.cleaned_data['latest_date']
-        # earliest_time = form.cleaned_data['earliest_time']
-        # latest_time = form.cleaned_data['latest_time']
         passengers_size = form.cleaned_data['passengers_size'] or 1
 
 
@@ -145,7 +153,7 @@ def ride_join(request, pk):
                 messages.success(request, 'You have joined the ride successfully')
             except IntegrityError:
                 messages.error(request, 'You have already joined the ride')
-            return redirect('rides:ride-list', pk = ride.pk)
+            return redirect('rides:my-ride-list')
     else:
         form = RideShareForm()
     return render(request, 'rides/ride_join.html', {'form': form, 'ride': ride})

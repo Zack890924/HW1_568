@@ -33,6 +33,9 @@ class Ride(models.Model):
     def total_amount_people(self):
         return self.owner_passengers + sum(rs.passenger for rs in self.ride_share.all())
 
+    # def user_joined(self, user):
+    #     return self.ride_share.filter(sharer=user.userprofile).exists()
+
     def __str__(self):
         return f"{self.owner.name} => {self.destination} {self.scheduled_datetime} {self.get_status_display()}"
 

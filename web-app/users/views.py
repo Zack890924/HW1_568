@@ -30,11 +30,15 @@ def register(request):
 
             username = user_form.cleaned_data.get('username')
             password = user_form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=password)
-            if user:
+            new_user = authenticate(username=username, password=password)
+
+            if new_user:
                 login(request, user)
-                messages.success(request, f'Account created for {username}!')
-                return redirect('home')
+                if profile.is_driver:
+                    return redirect('users:driver_register_step2')
+                else:
+                    messages.success(request, f'Account created for {username}!')
+                    return redirect('home')
             else :
                 messages.warning(request, 'account already created')
         else :
@@ -98,3 +102,26 @@ def update_driver(request):
 
     return render(request, 'users/update_driver.html', {'form': driver_form})
 
+
+@login_required()
+def driver_register_step2(request):
+    if hasattr(request.user, 'driverprofile'):
+        messages.info(request, 'You already have a driver profile.')
+        return redirect('home')
+    if request.method == 'POST':
+        driver_form = DriverProfileForm(request.POST)
+        if driver_form.is_valid():
+            driver = driver_form.save(commit=False)
+            driver.driver = request.user
+            driver.save()
+
+            request.user.userprofile.is_driver = True
+            request.user.userprofile.save()
+
+            messages.success(request, 'You are now a driver')
+            return redirect('home')
+        else :
+            messages.error(request, 'Driver form is not valid')
+    else :
+        driver_form = DriverProfileForm()
+    return render(request, 'users/become_driver_step2.html', {'form': driver_form})

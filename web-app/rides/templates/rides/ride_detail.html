@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Ride Detail{% endblock %}
 {% block content %}
+
 <h2>Ride #{{ ride.id }} - {{ ride.get_status_display }}</h2>
 <div class="card">
   <div class="card-body">
@@ -17,13 +18,30 @@
       <p><strong>Driver:</strong> {{ ride.driver.driver.username }} (capacity: {{ ride.driver.maxPassengers }})</p>
     {% endif %}
 
-    {% if ride.status == 'OPEN' and user.is_authenticated and user != ride.owner.user %}
-      <form method="post" action="{% url 'rides:ride-join' ride.pk %}">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-primary">Join</button>
-        <a href="{% url 'rides:ride-list' %}" class="btn btn-primary">Back</a>
-      </form>
+    {% if ride.status == 'OPEN' %}
+      <div class="action-buttons">
+        {% if user.is_authenticated %}
+          {% if user.userprofile.is_driver %}
+            <form method="post" action="{% url 'rides:driver_claim_ride' ride.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-primary">Claim</button>
+            </form>
+
+          {% elif user != ride.owner.user and not has_joined %}
+            <form method="post" action="{% url 'rides:ride-join' ride.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-primary">Join</button>
+            </form>
+          {% endif %}
+        {% endif %}
+      </div>
     {% endif %}
+
+
+    <div style="margin-top: 20px;">
+      <a href="{% url 'rides:ride-list' %}" class="btn btn-primary wide-btn">Back</a>
+    </div>
+
   </div>
 </div>
 

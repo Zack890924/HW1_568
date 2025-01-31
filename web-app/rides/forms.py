@@ -19,9 +19,9 @@ class RideRequestForm(forms.ModelForm):
         ('OTHER', 'Other'),
     ]
 
-    vehicleType = forms.ChoiceField(
+    vehicle_type_request = forms.ChoiceField(
         choices=VEHICLE_TYPE_CHOICES,
-        required=True,
+        required=False,
         widget=forms.Select(attrs={
             'class': 'form-control',
             'id': 'vehicleType',
@@ -43,7 +43,7 @@ class RideRequestForm(forms.ModelForm):
     class Meta:
         model = Ride
         fields = ['destination', 'scheduled_datetime', 'owner_passengers',
-                  'can_shared', 'special_request']
+                  'can_shared', 'special_request', 'vehicle_type_request']
         widgets = {
             'scheduled_datetime': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             'destination': forms.TextInput(attrs={'class': 'form-control'}),
@@ -53,13 +53,13 @@ class RideRequestForm(forms.ModelForm):
         }
     def clean(self):
         cleaned_data = super().clean()
-        vehicle_type = cleaned_data.get('vehicle_type')
+        vehicle_type_request = cleaned_data.get('vehicle_type_request')
         other_vehicle_type = cleaned_data.get('other_vehicleType')
-        if vehicle_type == 'OTHER':
+        if vehicle_type_request == 'OTHER':
             if not other_vehicle_type:
                 self.add_error('other_vehicleType', 'Please enter a vehicle type.')
             else:
-                cleaned_data['vehicle_type'] = other_vehicle_type
+                cleaned_data['vehicle_type_request'] = other_vehicle_type
 
         return cleaned_data
 

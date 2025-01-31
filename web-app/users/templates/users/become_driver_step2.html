@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Become a Driver</h2>
+<form method="POST">
+    {% csrf_token %}
+
+    <div class="form-group">
+        {{ form.vehicleType.label_tag }}
+        {{ form.vehicleType }}
+        {{ form.vehicleType.errors }}
+    </div>
+
+    <div class="form-group">
+        {{ form.other_vehicleType }}
+        {{ form.other_vehicleType.errors }}
+    </div>
+
+
+    <div class="form-group">
+        {{ form.licensePlate.label_tag }}
+        {{ form.licensePlate }}
+        {{ form.licensePlate.errors }}
+    </div>
+
+    <div class="form-group">
+        {{ form.maxPassengers.label_tag }}
+        {{ form.maxPassengers }}
+        {{ form.maxPassengers.errors }}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+
+<script>
+function toggleOtherVehicle() {
+    const vehicleType = document.getElementById('vehicleType').value;
+    const otherField = document.getElementById('otherVehicleType');
+
+    if (vehicleType === 'OTHER') {
+        otherField.parentElement.style.display = 'block';
+        otherField.style.display = 'block';
+        otherField.required = true;
+    } else {
+        otherField.parentElement.style.display = 'none';
+        otherField.style.display = 'none';
+<!--        otherField.required = false;-->
+    }
+}
+document.addEventListener('DOMContentLoaded', toggleOtherVehicle);
+</script>
+{% endblock %}
