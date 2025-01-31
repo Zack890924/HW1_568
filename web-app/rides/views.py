@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
+from django.db import IntegrityError
 from django.db.models import F, Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -138,11 +139,11 @@ def ride_join(request, pk):
         if form.is_valid():
             ride_share = form.save(commit=False)
             ride_share.ride = ride
-            ride_share.user = request.user.userprofile
+            ride_share.sharer = request.user.userprofile
             try:
                 ride_share.save()
                 messages.success(request, 'You have joined the ride successfully')
-            except InterruptedError:
+            except IntegrityError:
                 messages.error(request, 'You have already joined the ride')
             return redirect('rides:ride-list', pk = ride.pk)
     else:

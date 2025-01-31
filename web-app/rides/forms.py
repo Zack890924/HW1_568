@@ -9,6 +9,7 @@ from .models import Ride, RideShare
 
 class RideRequestForm(forms.ModelForm):
     VEHICLE_TYPE_CHOICES = [
+        ('', '--- Not Specified ---'),
         ('SUV', 'SUV'),
         ('SEDAN', 'SEDAN'),
         ('Hybrid', 'Hybrid'),
@@ -18,22 +19,31 @@ class RideRequestForm(forms.ModelForm):
         ('OTHER', 'Other'),
     ]
 
-    vehicle_type = forms.ChoiceField(
-        choices = VEHICLE_TYPE_CHOICES,
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'}),
-        label='Vehicle Type'
+    vehicleType = forms.ChoiceField(
+        choices=VEHICLE_TYPE_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={
+            'class': 'form-control',
+            'id': 'vehicleType',
+            'onchange': "toggleOtherVehicle()"
+        }),
+        label='Vehicle Type',
     )
 
     other_vehicleType = forms.CharField(
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Specify Vehicle Type'}),
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Specify Vehicle Type',
+            'id': 'otherVehicleType',
+            'style': 'display:none'
+        }),
         label='Other Vehicle Type'
     )
     class Meta:
         model = Ride
         fields = ['destination', 'scheduled_datetime', 'owner_passengers',
-                  'can_shared', 'special_request', 'vehicle_type_request']
+                  'can_shared', 'special_request']
         widgets = {
             'scheduled_datetime': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             'destination': forms.TextInput(attrs={'class': 'form-control'}),
@@ -87,8 +97,7 @@ class BaseRideShareForm(forms.Form):
         cleaned_data = super().clean()
         earliest_datetime = cleaned_data.get('earliest_datetime')
         latest_datetime = cleaned_data.get('latest_datetime')
-        # earliest_time = cleaned_data.get('earliest_time')
-        # latest_time = cleaned_data.get('latest_time')
+
 
         if earliest_datetime and latest_datetime and earliest_datetime> latest_datetime:
             raise forms.ValidationError("The earliest time must be before the latest time.")

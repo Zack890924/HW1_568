@@ -12,12 +12,17 @@
     <p><strong>Special Request:</strong> {{ ride.special_request }}</p>
     <p><strong>Vehicle Type Request:</strong> {{ ride.vehicle_type_request }}</p>
 
+
     {% if ride.driver %}
       <p><strong>Driver:</strong> {{ ride.driver.driver.username }} (capacity: {{ ride.driver.maxPassengers }})</p>
     {% endif %}
 
-    {% if ride.status == 'OPEN' and user.is_authenticated and user != ride.owner.userprofile %}
-      <a href="{% url 'rides:ride-join' ride.id %}" class="btn btn-primary">Join</a>
+    {% if ride.status == 'OPEN' and user.is_authenticated and user != ride.owner.user %}
+      <form method="post" action="{% url 'rides:ride-join' ride.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Join</button>
+        <a href="{% url 'rides:ride-list' %}" class="btn btn-primary">Back</a>
+      </form>
     {% endif %}
   </div>
 </div>
