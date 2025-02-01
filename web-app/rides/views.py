@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.db import IntegrityError
-from django.db.models import F, Q
+from django.db.models import F, Q, Sum, Value
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 
@@ -14,6 +14,8 @@ from django.views.generic import ListView, CreateView, UpdateView, DetailView
 from .forms import RideRequestForm, DriverSearchForm, SearchRideShareForm, RideShareForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .mixins import DriverRequiredMixin, OwnerRequiredMixin
+
+from django.db.models.functions import Coalesce
 # Create your views here.
 class OpenRideListView(ListView):
     model = Ride
@@ -34,10 +36,15 @@ class OpenRideListView(ListView):
         qs = qs.annotate(
             total_people=F('owner_passengers') + Coalesce(Sum('ride_share__passenger'), Value(0))
         )
-        # 假设 Ride 模型中的 driver 字段关联到 DriverProfile，并且 DriverProfile 有 maxPassengers 字段，
-        # 我们利用 F 表达式直接引用 driver__maxPassengers
-        # 如果 Ride 没有分配 driver，可以考虑额外的处理，比如排除 driver 为空的情况
-        qs = qs.filter(driver__isnull=False).filter(total_people__lte=F('driver__maxPassengers'))
+        # 过滤条件：如果 Ride 有司机，则要求 total_people <= driver__maxPassengers；
+        # 如果 Ride 没有司机，则暂时保留（后续根据当前用户类型再决定是否排除）
+        qs = qs.filter(
+            Q(driver__isnull=True) | Q(total_people__lte=F('driver__maxPassengers'))
+        )
+        # 根据当前用户的 is_driver 字段进行进一步过滤：
+        # 如果当前用户不是司机，则排除掉没有司机接单的 Ride（driver 为 NULL 的记录）
+        if not self.request.user.userprofile.is_driver:
+            qs = qs.filter(driver__isnull=False)
         return qs
 
 
