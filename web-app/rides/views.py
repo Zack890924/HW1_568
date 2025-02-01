@@ -23,8 +23,23 @@ class OpenRideListView(ListView):
     ordering = ['-created_at']
 
     def get_queryset(self):
-        return super().get_queryset().filter(Q(status=Ride.Status.OPEN) | Q(status=Ride.Status.CLOSED))
-    # TODO destination constraint passenger size... to be added
+        # 初步筛选状态为 OPEN 或 CLOSED 的 Ride (之后改为只显示OPEN)
+        qs = super().get_queryset().filter(
+            Q(status=Ride.Status.OPEN) | Q(status=Ride.Status.CLOSED)
+        )
+        # 使用 annotate 计算每个 Ride 的总乘客数：
+        # 总乘客数 = owner_passengers + (所有 ride_share 中的 passenger 数量之和)
+        # 使用 Coalesce 处理没有 ride_share 时 Sum 返回 None 的情况
+        # ride_share__passenger表示访问 Ride 对象相关联的所有 RideShare 对象中的 passenger 字段
+        qs = qs.annotate(
+            total_people=F('owner_passengers') + Coalesce(Sum('ride_share__passenger'), Value(0))
+        )
+        # 假设 Ride 模型中的 driver 字段关联到 DriverProfile，并且 DriverProfile 有 maxPassengers 字段，
+        # 我们利用 F 表达式直接引用 driver__maxPassengers
+        # 如果 Ride 没有分配 driver，可以考虑额外的处理，比如排除 driver 为空的情况
+        qs = qs.filter(driver__isnull=False).filter(total_people__lte=F('driver__maxPassengers'))
+        return qs
+
 
 
 class MyRidesView(ListView):

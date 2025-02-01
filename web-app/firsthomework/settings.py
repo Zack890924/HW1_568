@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-p686nz85_dso(u)q85qy7i$g-^t2nk@eg0nq*t&3xy@pnonpmh
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['web', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['web', 'localhost', '127.0.0.1', 'vcm-45381.vm.duke.edu']
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
@@ -89,7 +89,7 @@ DATABASES = {
         'NAME': 'django_db',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
-        'HOST': 'db',  # This is the service name from docker-compose.yml
+        'HOST': 'localhost',  # This is the service name from docker-compose.yml
         'PORT': 5432,
     }
 }
