@@ -85,6 +85,14 @@ class OpenRideListView(ListView):
         #     except ValueError:
         #         pass
 
+        # 1. 如果当前用户正好是 ride 的 owner，则排除该 ride；
+        # 2. 如果当前用户不是 owner，但 ride 的 can_shared 为 False，则也排除，除非是司机
+        if self.request.user.is_authenticated:
+            current_profile = self.request.user.userprofile
+            # 如果当前用户不是司机，则筛掉不是owner的
+            if not self.request.user.userprofile.is_driver:
+                qs = qs.exclude(owner=current_profile).filter(can_shared=True)
+
         return qs
 
     def get_context_data(self, **kwargs):
@@ -148,9 +156,14 @@ class RideDetailView(DetailView):
         if self.request.user.is_authenticated:
             user_profile = self.request.user.userprofile
             context['has_joined'] = self.object.ride_share.filter(sharer=user_profile).exists()
+            # 如果user是司机且ride不可以被share，则has_join为True来阻止join按键出现
+            if not self.object.can_shared and self.request.user.userprofile.is_driver:
+                print(f"self.object.can_shared: {self.object.can_shared}")
+                print(f"self.request.user.userprofile.is_driver: {self.request.user.userprofile.is_driver}")
+                context['has_joined'] = True
         else:
             context['has_joined'] = False
-
+        print(f"context['has_joined']: {context['has_joined']}")
         return context
 
 
@@ -168,10 +181,11 @@ class RideCreateView(LoginRequiredMixin, CreateView):
     # logic for form created successfully
     def form_valid(self, form):
         form.instance.owner = self.request.user.userprofile
-        if form.cleaned_data.get('can_shared'):
-            form.instance.status = Ride.Status.OPEN
-        else:
-            form.instance.status = Ride.Status.CLOSED
+        # if form.cleaned_data.get('can_shared'):
+        #     form.instance.status = Ride.Status.OPEN
+        # else:
+        #     form.instance.status = Ride.Status.CLOSED
+        form.instance.status = Ride.Status.OPEN
         return super().form_valid(form)
 
 
@@ -296,7 +310,11 @@ def driver_claim_ride(request, pk):
     if ride.total_amount_people() > driver_profile.maxPassengers:
         messages.error(request, 'Passengers size exceed total capacity')
         return redirect('rides:ride-list')
-
+    if ride.special_request and ride.special_request != driver_profile.special_info:
+        print(f"ride.special_request:{ride.special_request}")
+        print(f"driver_profile.special_info:{driver_profile.special_info}")
+        messages.error(request, 'Does not satisfy special request')
+        return redirect('rides:ride-list')
     ride.driver = request.user.driverprofile
     ride.status = 'CONFIRMED'
     ride.save()
