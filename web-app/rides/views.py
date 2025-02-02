@@ -290,7 +290,7 @@ def driver_claim_ride(request, pk):
         return redirect('rides:ride-list')
     ride = get_object_or_404(Ride, pk=pk, status='OPEN')
     # double check
-    if ride.total_amount_people() > driver_profile.capacity:
+    if ride.total_amount_people() > driver_profile.maxPassengers:
         messages.error(request, 'Passengers size exceed total capacity')
         return redirect('rides:ride-list')
 
@@ -298,8 +298,8 @@ def driver_claim_ride(request, pk):
     ride.status = 'CONFIRMED'
     ride.save()
 
-
-    send_email_for_ride(ride)
+    # need to refine
+    # send_email_for_ride(ride)
     messages.success(request, f"You have successfully claimed ride #{ride.id}!")
     return redirect('rides:ride-list')
 

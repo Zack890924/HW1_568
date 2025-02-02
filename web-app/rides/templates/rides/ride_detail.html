@@ -11,7 +11,12 @@
     <p><strong>Passengers (Owner):</strong> {{ ride.owner_passengers }}</p>
     <p><strong>Can Shared:</strong> {{ ride.can_shared }}</p>
     <p><strong>Special Request:</strong> {{ ride.special_request }}</p>
-    <p><strong>Vehicle Type Request:</strong> {{ ride.vehicle_type_request }}</p>
+    {% if ride.vehicle_type_request %}
+        <p><strong>Vehicle Type Request:</strong> {{ ride.vehicle_type_request }}</p>
+    {% else %}
+        <p><strong>Vehicle Type Request:</strong> None</p>
+    {% endif %}
+
 
 
     {% if ride.driver %}
