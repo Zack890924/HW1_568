@@ -104,23 +104,33 @@ class MyRidesView(ListView):
 
     def get_queryset(self):
         user = self.request.user
-
         user_profile = user.userprofile
 
-
-        owned = Ride.objects.filter(owner=user_profile).exclude(status=Ride.Status.COMPLETED)
-
-
-        sharer_rides = RideShare.objects.filter(sharer=user_profile).select_related('ride')
-        sharer = Ride.objects.filter(id__in=sharer_rides.values('ride_id')).exclude(status=Ride.Status.COMPLETED)
-
-        driven = Ride.objects.none()
-        if hasattr(user, 'driverprofile'):
-            driven = Ride.objects.filter(driver=user.driverprofile).exclude(status=Ride.Status.COMPLETED)
+        # 获取 GET 参数中的 status，如果有则使用该状态过滤
+        status_query = self.request.GET.get('status')
+        if status_query:
+            owned = Ride.objects.filter(owner=user_profile, status=status_query)
+            sharer_rides = RideShare.objects.filter(sharer=user_profile).select_related('ride')
+            sharer = Ride.objects.filter(id__in=sharer_rides.values('ride_id'), status=status_query)
+            driven = Ride.objects.none()
+            if hasattr(user, 'driverprofile'):
+                driven = Ride.objects.filter(driver=user.driverprofile, status=status_query)
+        else:
+        # 默认：排除 COMPLETED 状态
+            owned = Ride.objects.filter(owner=user_profile).exclude(status=Ride.Status.COMPLETED)
+            sharer_rides = RideShare.objects.filter(sharer=user_profile).select_related('ride')
+            sharer = Ride.objects.filter(id__in=sharer_rides.values('ride_id')).exclude(status=Ride.Status.COMPLETED)
+            driven = Ride.objects.none()
+            if hasattr(user, 'driverprofile'):
+                driven = Ride.objects.filter(driver=user.driverprofile).exclude(status=Ride.Status.COMPLETED)
 
         return owned.union(sharer, driven)
 
-
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # 将 Ride 模型的状态选项传递给模板
+        context['ride_status_choices'] = Ride.Status.choices
+        return context
 
 
 class RideDetailView(DetailView):

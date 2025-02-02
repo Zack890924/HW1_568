@@ -5,6 +5,30 @@
 {% block title %}Open Ride List{% endblock %}
 
 {% block content %}
+<!-- Toggle 搜索栏按钮 -->
+<button class="btn btn-secondary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#toggleSearch">
+  Expend (collapse)
+</button>
+
+<!-- 搜索栏（折叠区域） -->
+<div class="collapse show mb-3" id="toggleSearch">
+  <div class="card card-body">
+    <form method="get" class="row g-3">
+      <div class="col-auto">
+        <label for="status" class="visually-hidden">Status</label>
+        <select class="form-select" name="status" id="status">
+          <option value="">All</option>
+          {% for key, value in ride_status_choices %}
+            <option value="{{ key }}" {% if request.GET.status == key %}selected{% endif %}>{{ value }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-primary mb-3">Search</button>
+      </div>
+    </form>
+  </div>
+</div>
 <h2>Open Rides</h2>
 {% if rides_list %}
   <table class="table table-hover">
