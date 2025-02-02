@@ -25,9 +25,8 @@ class OpenRideListView(ListView):
     ordering = ['-created_at']
 
     def get_queryset(self):
-        # 初步筛选状态为 OPEN 或 CLOSED 的 Ride (之后改为只显示OPEN)
         qs = super().get_queryset().filter(
-            Q(status=Ride.Status.OPEN) | Q(status=Ride.Status.CLOSED)
+            Q(status=Ride.Status.OPEN) | Q(status=Ride.Status.CONFIRMED) | Q(status=Ride.Status.CLOSED)
         )
         # 使用 annotate 计算每个 Ride 的总乘客数：
         # 总乘客数 = owner_passengers + (所有 ride_share 中的 passenger 数量之和)
@@ -236,6 +235,7 @@ def ride_join(request, pk):
         form = RideShareForm()
     return render(request, 'rides/ride_join.html', {'form': form, 'ride': ride})
 
+# I integrate search function of user and driver together, so this function may not be useful anymore
 @login_required()
 def driver_search_ride(request):
     driver_profile = getattr(request.user, 'driverprofile', None)
@@ -246,8 +246,6 @@ def driver_search_ride(request):
     valid_rides = []
     if form.is_valid():
         destination = form.cleaned_data['destination']
-
-
         rides = Ride.objects.filter(status = 'OPEN', can_shared = True)
         if destination:
             rides = rides.filter(destination__icontains=destination)

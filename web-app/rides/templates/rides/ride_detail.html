@@ -20,7 +20,9 @@
 
 
     {% if ride.driver %}
-      <p><strong>Driver:</strong> {{ ride.driver.driver.username }} (capacity: {{ ride.driver.maxPassengers }})</p>
+      <p><strong>Driver:</strong> {{ ride.driver.driver.username }} (capacity: {{ ride.driver.maxPassengers }}, License Plate: {{ ride.driver.licensePlate}})</p>
+    {% else %}
+      <p><strong>Driver:</strong> No driver claim this ride yet </p>
     {% endif %}
 
     {% if ride.status == 'OPEN' %}
