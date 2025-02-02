@@ -45,7 +45,52 @@ class OpenRideListView(ListView):
         # 如果当前用户不是司机，则排除掉没有司机接单的 Ride（driver 为 NULL 的记录）
         if not self.request.user.userprofile.is_driver:
             qs = qs.filter(driver__isnull=False)
+
+        # 获取 GET 请求中的搜索参数
+        destination = self.request.GET.get('destination', '').strip()
+        if destination:
+            qs = qs.filter(destination__icontains=destination)
+
+        # 到达时间区间搜索
+        arrival_time_start = self.request.GET.get('arrival_time_start', '').strip()
+        arrival_time_end = self.request.GET.get('arrival_time_end', '').strip()
+
+        # datetime-local格式 'YYYY-MM-DDTHH:MM'
+        if arrival_time_start:
+            try:
+                start_datetime = datetime.strptime(arrival_time_start, '%Y-%m-%dT%H:%M')
+                qs = qs.filter(scheduled_datetime__gte=start_datetime)
+            except ValueError:
+                pass
+
+        if arrival_time_end:
+            try:
+                end_datetime = datetime.strptime(arrival_time_end, '%Y-%m-%dT%H:%M')
+                qs = qs.filter(scheduled_datetime__lte=end_datetime)
+            except ValueError:
+                pass
+
+        # 乘客数量搜索：剩余座位大于或等于用户输入的数量
+        passengers = self.request.GET.get('passengers', '').strip()
+        if passengers:
+            try:
+                passengers = int(passengers)
+                qs = qs.annotate(
+                    available_seats=F('driver__maxPassengers') - F('total_people')
+                ).filter(available_seats__gte=passengers)
+            except ValueError:
+                pass
+
         return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # 将搜索参数传递到模板，用于回显搜索条件
+        context['destination'] = self.request.GET.get('destination', '')
+        context['arrival_time_start'] = self.request.GET.get('arrival_time_start', '')
+        context['arrival_time_end'] = self.request.GET.get('arrival_time_end', '')
+        context['passengers'] = self.request.GET.get('passengers', '')
+        return context
 
 
 
