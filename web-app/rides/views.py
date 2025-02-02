@@ -26,7 +26,7 @@ class OpenRideListView(ListView):
 
     def get_queryset(self):
         qs = super().get_queryset().filter(
-            Q(status=Ride.Status.OPEN) | Q(status=Ride.Status.CONFIRMED)
+            Q(status=Ride.Status.OPEN)
         )
         # 使用 annotate 计算每个 Ride 的总乘客数：
         # 总乘客数 = owner_passengers + (所有 ride_share 中的 passenger 数量之和)
@@ -74,16 +74,14 @@ class OpenRideListView(ListView):
         if special_request:
             qs = qs.filter(special_request__exact=special_request)
 
-        # # 乘客数量搜索：剩余座位大于或等于用户输入的数量
-        # passengers = self.request.GET.get('passengers', '').strip()
-        # if passengers:
-        #     try:
-        #         passengers = int(passengers)
-        #         qs = qs.annotate(
-        #             available_seats=F('driver__maxPassengers') - F('total_people')
-        #         ).filter(available_seats__gte=passengers)
-        #     except ValueError:
-        #         pass
+        # 已经搭乘的乘客数量搜索
+        passengers = self.request.GET.get('passengers', '').strip()
+        if passengers:
+            try:
+                passengers = int(passengers)
+                qs = qs.filter(total_people__exact=passengers)
+            except ValueError:
+                pass
 
         # 1. 如果当前用户正好是 ride 的 owner，则排除该 ride；
         # 2. 如果当前用户不是 owner，但 ride 的 can_shared 为 False，则也排除，除非是司机
