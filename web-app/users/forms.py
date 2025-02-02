@@ -68,10 +68,20 @@ class DriverProfileForm(forms.ModelForm):
         label='Other Vehicle Type'
     )
 
+    # 添加 special_info 属性，用于记录特殊车辆信息
+    special_info = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter any special vehicle information',
+            'rows': 3,
+        }),
+        label='Special Vehicle Info'
+    )
 
     class Meta:
         model = DriverProfile
-        fields = ['vehicleType', 'licensePlate', 'maxPassengers']
+        fields = ['vehicleType', 'licensePlate', 'maxPassengers', 'special_info']
         # To do
         # special_info
 
@@ -89,6 +99,4 @@ class DriverProfileForm(forms.ModelForm):
                 self.add_error('other_vehicleType', 'Please enter a vehicle type.')
             else:
                 cleaned_data['vehicleType'] = other_vehicle_type
-
-
         return cleaned_data

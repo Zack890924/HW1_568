@@ -31,6 +31,8 @@ class DriverProfile(models.Model):
     vehicleType = models.CharField(max_length=100)
     licensePlate = models.CharField(max_length=100)
     maxPassengers = models.IntegerField()
+    # 添加 special_info 字段，允许为空
+    special_info = models.TextField(blank=True, null=True, help_text="Enter any special vehicle information")
     def __str__(self):
         return f'{self.driver.userprofile.name} Profile'
 

@@ -29,7 +29,13 @@
         {{ form.maxPassengers.errors }}
     </div>
 
-    <button type="submit" class="btn btn-primary">Submit</button>
+     <div class="form-group">
+        {{ form.special_info.label_tag }}
+        {{ form.special_info }}
+        {{ form.special_info.errors }}
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="margin-top: 20px">Submit</button>
 </form>
 
 
