@@ -26,7 +26,7 @@ class OpenRideListView(ListView):
 
     def get_queryset(self):
         qs = super().get_queryset().filter(
-            Q(status=Ride.Status.OPEN) | Q(status=Ride.Status.CONFIRMED) | Q(status=Ride.Status.CLOSED)
+            Q(status=Ride.Status.OPEN) | Q(status=Ride.Status.CONFIRMED)
         )
         # 使用 annotate 计算每个 Ride 的总乘客数：
         # 总乘客数 = owner_passengers + (所有 ride_share 中的 passenger 数量之和)
