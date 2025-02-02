@@ -82,8 +82,6 @@ class DriverProfileForm(forms.ModelForm):
     class Meta:
         model = DriverProfile
         fields = ['vehicleType', 'licensePlate', 'maxPassengers', 'special_info']
-        # To do
-        # special_info
 
         widgets = {
             'licensePlate': forms.TextInput(attrs={'class': 'form-control'}),

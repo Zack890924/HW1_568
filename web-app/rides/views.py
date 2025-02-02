@@ -36,15 +36,15 @@ class OpenRideListView(ListView):
         qs = qs.annotate(
             total_people=F('owner_passengers') + Coalesce(Sum('ride_share__passenger'), Value(0))
         )
-        # 过滤条件：如果 Ride 有司机，则要求 total_people <= driver__maxPassengers；
-        # 如果 Ride 没有司机，则暂时保留（后续根据当前用户类型再决定是否排除）
-        qs = qs.filter(
-            Q(driver__isnull=True) | Q(total_people__lte=F('driver__maxPassengers'))
-        )
-        # 根据当前用户的 is_driver 字段进行进一步过滤：
-        # 如果当前用户不是司机，则排除掉没有司机接单的 Ride（driver 为 NULL 的记录）
-        if not self.request.user.userprofile.is_driver:
-            qs = qs.filter(driver__isnull=False)
+        # # 如果 Ride 有司机，则要求 total_people <= driver__maxPassengers；
+        # # 如果 Ride 没有司机，则暂时保留（后续根据当前用户类型再决定是否排除）
+        # qs = qs.filter(
+        #     Q(driver__isnull=True) | Q(total_people__lte=F('driver__maxPassengers'))
+        # )
+        #
+        # # 如果当前用户不是司机，则排除掉没有司机接单的 Ride（driver 为 NULL 的记录）
+        # if not self.request.user.userprofile.is_driver:
+        #     qs = qs.filter(driver__isnull=False)
 
         # 获取 GET 请求中的搜索参数
         destination = self.request.GET.get('destination', '').strip()
@@ -70,16 +70,20 @@ class OpenRideListView(ListView):
             except ValueError:
                 pass
 
-        # 乘客数量搜索：剩余座位大于或等于用户输入的数量
-        passengers = self.request.GET.get('passengers', '').strip()
-        if passengers:
-            try:
-                passengers = int(passengers)
-                qs = qs.annotate(
-                    available_seats=F('driver__maxPassengers') - F('total_people')
-                ).filter(available_seats__gte=passengers)
-            except ValueError:
-                pass
+        special_request = self.request.GET.get('special_request', '').strip()
+        if special_request:
+            qs = qs.filter(special_request__exact=special_request)
+
+        # # 乘客数量搜索：剩余座位大于或等于用户输入的数量
+        # passengers = self.request.GET.get('passengers', '').strip()
+        # if passengers:
+        #     try:
+        #         passengers = int(passengers)
+        #         qs = qs.annotate(
+        #             available_seats=F('driver__maxPassengers') - F('total_people')
+        #         ).filter(available_seats__gte=passengers)
+        #     except ValueError:
+        #         pass
 
         return qs
 
@@ -90,6 +94,7 @@ class OpenRideListView(ListView):
         context['arrival_time_start'] = self.request.GET.get('arrival_time_start', '')
         context['arrival_time_end'] = self.request.GET.get('arrival_time_end', '')
         context['passengers'] = self.request.GET.get('passengers', '')
+        context['special_request'] = self.request.GET.get('special_request', '')
         return context
 
 
