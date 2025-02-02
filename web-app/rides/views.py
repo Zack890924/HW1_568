@@ -33,6 +33,7 @@ class OpenRideListView(ListView):
         # 总乘客数 = owner_passengers + (所有 ride_share 中的 passenger 数量之和)
         # 使用 Coalesce 处理没有 ride_share 时 Sum 返回 None 的情况
         # ride_share__passenger表示访问 Ride 对象相关联的所有 RideShare 对象中的 passenger 字段
+        # F函数：动态地获取值
         qs = qs.annotate(
             total_people=F('owner_passengers') + Coalesce(Sum('ride_share__passenger'), Value(0))
         )
@@ -96,7 +97,7 @@ class OpenRideListView(ListView):
 
 class MyRidesView(ListView):
     model = Ride
-    template_name = 'rides/my_rides_list.html'
+    template_name = 'rides/my_ride_list.html'
     context_object_name = 'rides_list'
     paginate_by = 5
     ordering = ['-scheduled_datetime']
