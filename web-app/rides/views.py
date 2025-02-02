@@ -74,6 +74,11 @@ class OpenRideListView(ListView):
         if special_request:
             qs = qs.filter(special_request__exact=special_request)
 
+        cap_check = self.request.GET.get('cap_check', '').strip()
+        if cap_check:
+            # qs = qs.filter(total_people__lte=self.request.user.driverprofile.maxPassengers)
+            qs = qs.filter(total_people__lte=cap_check)
+
         # 已经搭乘的乘客数量搜索
         passengers = self.request.GET.get('passengers', '').strip()
         if passengers:
@@ -101,6 +106,7 @@ class OpenRideListView(ListView):
         context['arrival_time_end'] = self.request.GET.get('arrival_time_end', '')
         context['passengers'] = self.request.GET.get('passengers', '')
         context['special_request'] = self.request.GET.get('special_request', '')
+        context['cap_check'] = self.request.GET.get('cap_check', '')
         return context
 
 
