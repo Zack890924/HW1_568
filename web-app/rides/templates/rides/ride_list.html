@@ -2,6 +2,29 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container mt-4">
+    <h2>Search Rides</h2>
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <label for="destination" class="form-label">Destination</label>
+            <input type="text" class="form-control" id="destination" name="destination" value="{{ destination }}">
+        </div>
+        <div class="col-md-3">
+            <label for="arrival_time_start" class="form-label">Arrived Time Start</label>
+            <input type="datetime-local" class="form-control" id="arrival_time_start" name="arrival_time_start" value="{{ arrival_time_start }}">
+        </div>
+        <div class="col-md-3">
+            <label for="arrival_time_end" class="form-label">Arrived Time End</label>
+            <input type="datetime-local" class="form-control" id="arrival_time_end" name="arrival_time_end" value="{{ arrival_time_end }}">
+        </div>
+        <div class="col-md-3">
+            <label for="passengers" class="form-label">Passengers Number</label>
+            <input type="number" class="form-control" id="passengers" name="passengers" min="1" value="{{ passengers }}">
+        </div>
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
+
     <h2>Open Rides</h2>
     <div class="list-group">
         {% for ride in rides_list %}
