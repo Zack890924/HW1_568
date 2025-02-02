@@ -13,8 +13,7 @@ urlpatterns = [
     path('ride-edit/<int:pk>', views.RideEditView.as_view(), name='ride-edit'),
     # path('ride-delete/<int:pk>', views.RideDeleteView.as_view(), name='ride-delete'),
     path('ride-join/<int:pk>', views.ride_join, name='ride-join'),
-    # integrate the driver claim function in the ride-detail
-    # path('driver-claim/<int:pk>/', views.driver_claim_ride, name='driver_claim_ride'),
+    path('driver-claim/<int:pk>/', views.driver_claim_ride, name='driver_claim_ride'),
     path('driver-complete/<int:pk>/', views.driver_complete_ride, name='driver_complete_ride'),
 
 
