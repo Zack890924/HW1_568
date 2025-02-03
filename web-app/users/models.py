@@ -2,6 +2,7 @@
 # users/models.py
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.validators import MinLengthValidator, RegexValidator
 
 # Create your models here.
 class UserProfile(models.Model):
@@ -10,7 +11,15 @@ class UserProfile(models.Model):
     # email = models.EmailField(unique=True, null=False, blank=False)
     is_driver = models.BooleanField(default=False)
     address = models.CharField(max_length=100)
-    phone = models.CharField(max_length=20)
+    phone = models.CharField(
+        max_length=20,
+        validators=[
+            RegexValidator(
+                regex=r'^\+?1?\d{9,15}$',
+                message='Phone number must be entered in the correct format: +0123456789.'
+            )
+        ]
+    )
 
     def __str__(self):
         return f'{self.name} Profile'

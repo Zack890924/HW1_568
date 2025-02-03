@@ -93,6 +93,8 @@ class OpenRideListView(ListView):
         # 2. 如果当前用户不是 owner，但 ride 的 can_shared 为 False，则也排除，除非是司机
         if self.request.user.is_authenticated:
             current_profile = self.request.user.userprofile
+            # exclude the ride which user already join
+            qs = qs.exclude(ride_share__sharer=current_profile)
             # 如果当前用户不是司机，则筛掉不是owner的
             if not self.request.user.userprofile.is_driver:
                 qs = qs.exclude(owner=current_profile).filter(can_shared=True)
@@ -157,18 +159,20 @@ class RideDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        user = self.request.user
+        ride = self.object
 
-        if self.request.user.is_authenticated:
-            user_profile = self.request.user.userprofile
-            context['has_joined'] = self.object.ride_share.filter(sharer=user_profile).exists()
-            # 如果user是司机且ride不可以被share，则has_join为True来阻止join按键出现
-            if not self.object.can_shared and self.request.user.userprofile.is_driver:
-                print(f"self.object.can_shared: {self.object.can_shared}")
-                print(f"self.request.user.userprofile.is_driver: {self.request.user.userprofile.is_driver}")
-                context['has_joined'] = True
+        if user.is_authenticated:
+            if user.userprofile.is_driver:
+                # see if the one who claim the ride is the exact driver of this ride
+                context['driver_claimed'] = ride.driver == user.driverprofile
+                # check if ride sharer list contains the driver(user)
+                context['driver_join'] = ride.ride_share.filter(sharer = user.userprofile).exists()
+            else:
+                context['has_joined'] = ride.ride_share.filter(sharer=user.userprofile).exists()
         else:
             context['has_joined'] = False
-        print(f"context['has_joined']: {context['has_joined']}")
+
         return context
 
 
@@ -243,6 +247,15 @@ def ride_search(request):
 @login_required()
 def ride_join(request, pk):
     ride = get_object_or_404(Ride, pk=pk, status='OPEN', can_shared=True)
+    user = request.user
+    # reinforce logic
+    if user.userprofile.is_driver and ride.driver == user.driverprofile:
+        messages.error(request, 'You already claimed this ride')
+        return redirect('rides:ride-list')
+    if ride.ride_share.filter(sharer=user.userprofile).exists():
+        messages.error(request, 'You have already joined this ride')
+        return redirect('rides:ride-list')
+
     if request.method == 'POST':
         form = RideShareForm(request.POST)
         if form.is_valid():
@@ -291,15 +304,13 @@ def send_email_for_ride(ride):
     email_messages = f'''
         Dear {ride.owner.name}, your ride to {ride.destination} has been claimed by a driver!
         Ride detail: 
-            - Date: {ride.date}
-            - Time: {ride.time}
+            - Scheduled time: {ride.scheduled_datetime}
             - Destination: {ride.destination}
-            - Vehicle type: {ride.vehicle_type}
-            - Driver: {ride.driver.name}
+            - Driver: {ride.driver}
     '''
-    recipients = [ride.owner.userprofile.email]
+    recipients = [ride.owner.user.email]
     for ride_share in ride.ride_share.all():
-        recipients.append(ride_share.sharer.userprofile.email)
+        recipients.append(ride_share.sharer.user.email)
 
     send_mail(subject, email_messages, settings.DEFAULT_FROM_EMAIL, recipients)
 
@@ -325,7 +336,7 @@ def driver_claim_ride(request, pk):
     ride.save()
 
     # need to refine
-    # send_email_for_ride(ride)
+    send_email_for_ride(ride)
     messages.success(request, f"You have successfully claimed ride #{ride.id}!")
     return redirect('rides:ride-list')
 

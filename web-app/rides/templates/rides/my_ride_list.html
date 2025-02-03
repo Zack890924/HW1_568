@@ -5,12 +5,12 @@
 {% block title %}Open Ride List{% endblock %}
 
 {% block content %}
-<!-- Toggle 搜索栏按钮 -->
+<!-- Toggle  -->
 <button class="btn btn-secondary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#toggleSearch">
   Expend (collapse)
 </button>
 
-<!-- 搜索栏（折叠区域） -->
+
 <div class="collapse show mb-3" id="toggleSearch">
   <div class="card card-body">
     <form method="get" class="row g-3">
@@ -29,7 +29,7 @@
     </form>
   </div>
 </div>
-<h2>Open Rides</h2>
+<h2>My Rides</h2>
 {% if rides_list %}
   <table class="table table-hover">
     <thead>
@@ -39,6 +39,7 @@
         <th>Scheduled Time</th>
         <th>Owner</th>
         <th>Status</th>
+        <th>Capacity</th>
         <th></th>
       </tr>
     </thead>
@@ -50,6 +51,15 @@
         <td>{{ ride.scheduled_datetime|date:"Y-m-d H:i" }}</td>
         <td>{{ ride.owner.name }}</td>
         <td>{{ ride.get_status_display }}</td>
+        <td>
+          {% if ride.owner == request.user %}
+            Owner
+          {% elif ride.driver and ride.driver == request.user.driverprofile %}
+            Driver
+          {% else %}
+            Sharer
+          {% endif %}
+        </td>
         <td>
           <a href="{% url 'rides:ride-detail' ride.id %}" class="btn btn-sm btn-info">Detail</a>
         </td>

@@ -25,22 +25,30 @@
       <p><strong>Driver:</strong> No driver claim this ride yet </p>
     {% endif %}
 
-    {% if ride.status == 'OPEN'%}
+
+
+
+<!--logic for Driver claim join Sharer join-->
+    {% if ride.status == 'OPEN' and user.is_authenticated %}
       <div class="action-buttons">
-        {% if user.is_authenticated %}
-          {% if user.userprofile.is_driver%}
+        {% if user.userprofile.is_driver %}
+          {% if driver_claimed %}
+            <p>You have already claimed this ride</p>
+          {% elif driver_join %}
+            <p>You have already joined this ride</p>
+          {% else %}
             <form method="post" action="{% url 'rides:driver_claim_ride' ride.pk %}">
               {% csrf_token %}
               <button type="submit" class="btn btn-primary">Claim</button>
             </form>
-          {% elif user != ride.owner.user and not has_joined %}
-            <form method="post" action="{% url 'rides:ride-join' ride.pk %}">
+            <form method="post" action="{% url 'rides:ride-join' ride.pk %}" style="margin-top: 20px;">
               {% csrf_token %}
               <button type="submit" class="btn btn-primary">Join</button>
             </form>
           {% endif %}
-          {% if user.userprofile.is_driver and not has_joined %}
-            <form method="post" action="{% url 'rides:ride-join' ride.pk %}"  style="margin-top: 20px;">
+        {% else %}
+          {% if user != ride.owner.user and not has_joined %}
+            <form method="post" action="{% url 'rides:ride-join' ride.pk %}">
               {% csrf_token %}
               <button type="submit" class="btn btn-primary">Join</button>
             </form>
@@ -48,6 +56,7 @@
         {% endif %}
       </div>
     {% endif %}
+
 
 
     <div style="margin-top: 20px;">
