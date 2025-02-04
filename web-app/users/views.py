@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
 from django.shortcuts import render, redirect
-from .forms import UserRegisterForm, UserUpdateForm, UserProfileForm, DriverProfileForm
+from .forms import UserRegisterForm, UserProfileForm, DriverProfileForm
 # Create your views here.
 
 def register(request):
@@ -54,6 +54,20 @@ def register(request):
     }
     return render(request, 'users/register.html', context)
 
+
+@login_required()
+def edit_profile(request):
+    if request.method == 'POST':
+        update_form = UserRegisterForm(request.POST, instance=request.user)
+        if update_form.is_valid():
+            update_form.save()
+            messages.success(request, 'Your profile has been updated')
+            return redirect('home')
+        else :
+            messages.error(request, 'User form is not valid')
+    else :
+        update_form = UserRegisterForm(instance=request.user)
+    return render(request, 'users/edit_profile.html', {'form': update_form})
 
 @login_required()
 def become_driver(request):

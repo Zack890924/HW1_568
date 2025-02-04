@@ -52,7 +52,7 @@
         <td>{{ ride.owner.name }}</td>
         <td>{{ ride.get_status_display }}</td>
         <td>
-          {% if ride.owner == request.user %}
+          {% if ride.owner == request.user.userprofile %}
             Owner
           {% elif ride.driver and ride.driver == request.user.driverprofile %}
             Driver

@@ -1,0 +1,13 @@
+<!-- rides/ride_confirm_delete.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Confirm Delete Ride</h2>
+  <p>Are you sure you want to delete the ride to "{{ object.destination }}" scheduled at "{{ object.scheduled_datetime }}"?</p>
+
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Yes, Cancel</button>
+    <a href="{% url 'rides:ride-detail' object.pk %}" class="btn btn-secondary">Cancel</a>
+  </form>
+{% endblock %}

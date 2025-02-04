@@ -39,6 +39,9 @@
                         <li>
                             <a class="nav-link" href="{% url 'rides:ride-list' %}">Search Ride List</a>
                         </li>
+                        <l1>
+                            <a class="nav-link" href="{% url 'users:edit_profile' %}">Edit Profile</a>
+                        </l1>
                         {% if not user.userprofile.is_driver %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'users:become_driver' %}">Become a Driver</a>

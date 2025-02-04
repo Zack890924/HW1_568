@@ -29,13 +29,20 @@
 
 
 <!--logic for Driver claim join Sharer join-->
-    {% if ride.status == 'OPEN' and user.is_authenticated %}
+   {% if ride.status == 'OPEN' and user.is_authenticated %}
+    {% if user.userprofile == ride.owner %}
+      <div class="action-buttons">
+        <p>This is your own ride, you can edit or cancel it</p>
+        <a href="{% url 'rides:ride-edit' ride.pk %}" class="btn btn-primary">Edit</a>
+        <a href="{% url 'rides:ride-cancel' ride.pk %}" class="btn btn-danger">Cancel</a>
+      </div>
+    {% else %}
       <div class="action-buttons">
         {% if user.userprofile.is_driver %}
           {% if driver_claimed %}
-            <p>You have already claimed this ride</p>
+            <p>You have already claimed this ride.</p>
           {% elif driver_join %}
-            <p>You have already joined this ride</p>
+            <p>You have already joined this ride.</p>
           {% else %}
             <form method="post" action="{% url 'rides:driver_claim_ride' ride.pk %}">
               {% csrf_token %}
@@ -47,7 +54,7 @@
             </form>
           {% endif %}
         {% else %}
-          {% if user != ride.owner.user and not has_joined %}
+          {% if not has_joined %}
             <form method="post" action="{% url 'rides:ride-join' ride.pk %}">
               {% csrf_token %}
               <button type="submit" class="btn btn-primary">Join</button>
@@ -56,6 +63,8 @@
         {% endif %}
       </div>
     {% endif %}
+  {% endif %}
+
 
 
 

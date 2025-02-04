@@ -11,4 +11,5 @@ urlpatterns = [
     path('driver/', views.become_driver, name='become_driver'),
     path('update_driver/', views.update_driver, name='update_driver'),
     path('driver_register_step2/', views.driver_register_step2, name='driver_register_step2'),
+    path('edit_profile/', views.edit_profile, name='edit_profile'),
 ]

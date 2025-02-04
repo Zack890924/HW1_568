@@ -11,7 +11,7 @@ from datetime import datetime
 
 from .models import Ride, RideShare
 from django.shortcuts import render
-from django.views.generic import ListView, CreateView, UpdateView, DetailView
+from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
 from .forms import RideRequestForm, DriverSearchForm, SearchRideShareForm, RideShareForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .mixins import DriverRequiredMixin, OwnerRequiredMixin
@@ -184,31 +184,53 @@ class RideCreateView(LoginRequiredMixin, CreateView):
     model = Ride
     form_class = RideRequestForm
     template_name = 'rides/ride_create.html'
-    # success_url = reverse_lazy('rides:my_ride_list')
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('rides:my-ride-list')
+
 
     # logic for form created successfully
     def form_valid(self, form):
         form.instance.owner = self.request.user.userprofile
-        # if form.cleaned_data.get('can_shared'):
-        #     form.instance.status = Ride.Status.OPEN
-        # else:
-        #     form.instance.status = Ride.Status.CLOSED
+
         form.instance.status = Ride.Status.OPEN
         return super().form_valid(form)
+
+
+class RideCancelView(LoginRequiredMixin, OwnerRequiredMixin, UpdateView):
+    model = Ride
+    template_name = 'rides/ride_cancel.html'
+    success_url = reverse_lazy('rides:my-ride-list')
+    fields = []
+    def form_valid(self, form):
+        if self.object.status == Ride.Status.OPEN:
+            self.object = self.get_object()
+            self.object.status = Ride.Status.CANCELLED
+            self.object.save()
+            messages.success(self.request, f"Ride #{self.object.id} has been cancelled")
+        else:
+            messages.error(self.request, f"Ride #{self.object.id} cannot be cancelled")
+        return redirect('rides:my-ride-list')
 
 
 class RideEditView(LoginRequiredMixin, OwnerRequiredMixin, UpdateView):
     model = Ride
     form_class = RideRequestForm
-    template_name = 'rides/rides_edit.html'
-    success_url = reverse_lazy('rides:my_ride_list')
+    template_name = 'rides/ride_edit.html'
+    success_url = reverse_lazy('rides:my-ride-list')
     def form_valid(self, form):
         if form.instance.status != Ride.Status.OPEN:
             messages.error(self.request, "Cannot edit this form")
-            # TODO direct location needs to be improve
             return redirect('rides:ride-list')
         return super().form_valid(form)
+
+
+# class rideShareUpdateView(LoginRequiredMixin, UpdateView):
+#     model = RideShare
+#     form_class = RideShareForm
+#     template_name = 'rides/ride_share_update.html'
+#     success_url = reverse_lazy('rides:my_ride_list')
+#
+#     def
+#
 
 
 # Sharer search for ride
@@ -249,6 +271,9 @@ def ride_join(request, pk):
     ride = get_object_or_404(Ride, pk=pk, status='OPEN', can_shared=True)
     user = request.user
     # reinforce logic
+    if ride.owner == user.userprofile:
+        messages.error(request, 'You cannot join your own ride')
+        return redirect('rides:ride-list')
     if user.userprofile.is_driver and ride.driver == user.driverprofile:
         messages.error(request, 'You already claimed this ride')
         return redirect('rides:ride-list')
@@ -335,7 +360,7 @@ def driver_claim_ride(request, pk):
     ride.status = 'CONFIRMED'
     ride.save()
 
-    # need to refine
+
     send_email_for_ride(ride)
     messages.success(request, f"You have successfully claimed ride #{ride.id}!")
     return redirect('rides:ride-list')

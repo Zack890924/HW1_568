@@ -9,4 +9,22 @@
         <button type="submit" class="btn btn-primary mt-3">Update</button>
     </form>
 </div>
+
+<script>
+function toggleOtherVehicle() {
+    const vehicleType = document.getElementById('vehicleType').value;
+    const otherField = document.getElementById('otherVehicleType');
+
+    if (vehicleType === 'OTHER') {
+        otherField.parentElement.style.display = 'block';
+        otherField.style.display = 'block';
+        otherField.required = true;
+    } else {
+        otherField.parentElement.style.display = 'none';
+        otherField.style.display = 'none';
+<!--        otherField.required = false;-->
+    }
+}
+document.addEventListener('DOMContentLoaded', toggleOtherVehicle);
+</script>
 {% endblock %}

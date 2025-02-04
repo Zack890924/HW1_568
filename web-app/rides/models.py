@@ -12,6 +12,7 @@ class Ride(models.Model):
         CLOSED = 'CLOSED', 'Closed'
         CONFIRMED = 'CONFIRMED', 'Confirmed'
         COMPLETED = 'COMPLETED', 'Completed'
+        CANCELLED = 'CANCELLED', 'Cancelled'
 
 
     owner = models.ForeignKey('users.UserProfile', on_delete=models.CASCADE, related_name='own_ride')

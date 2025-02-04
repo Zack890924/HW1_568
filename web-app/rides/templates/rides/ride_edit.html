@@ -1,10 +1,22 @@
+<!-- templates/rides/ride_edit.html -->
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Edit Ride</h1>
-<form method="post">
+<div class="container mt-4">
+  <h2>Edit Ride</h2>
+  
+<!--  &lt;!&ndash; 如果有表單錯誤，顯示錯誤訊息 &ndash;&gt;-->
+<!--  {% if form.errors %}-->
+<!--    <div class="alert alert-danger">-->
+<!--      <p>Please correct the error{{ form.errors|pluralize }} below.</p>-->
+<!--    </div>-->
+<!--  {% endif %}-->
+  
+  <form method="post" novalidate>
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Save Changes</button>
-</form>
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    <a href="{% url 'rides:ride-detail' object.pk %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
 {% endblock %}
