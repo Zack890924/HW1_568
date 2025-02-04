@@ -10,7 +10,7 @@
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit" class="btn btn-primary">Save Changes</button>
-    <a href="{% url 'rides:ride-detail' object.pk %}" class="btn btn-secondary">Cancel</a>
+    <a href="{% url 'rides:ride-detail' object.pk %}?from=my_ride_l" class="btn btn-secondary">Cancel</a>
   </form>
 </div>
 {% endblock %}
