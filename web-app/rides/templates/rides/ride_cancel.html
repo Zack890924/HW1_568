@@ -1,4 +1,4 @@
-<!-- rides/ride_confirm_delete.html -->
+<!-- rides/ride_cancel.html -->
 {% extends 'base.html' %}
 
 {% block content %}
@@ -8,6 +8,6 @@
   <form method="post">
     {% csrf_token %}
     <button type="submit" class="btn btn-danger">Yes, Cancel</button>
-    <a href="{% url 'rides:ride-detail' object.pk %}" class="btn btn-secondary">Cancel</a>
+    <a href="{% url 'rides:ride-detail' object.pk %}" class="btn btn-secondary">Back</a>
   </form>
 {% endblock %}

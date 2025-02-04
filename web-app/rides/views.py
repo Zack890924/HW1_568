@@ -223,14 +223,22 @@ class RideEditView(LoginRequiredMixin, OwnerRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-# class rideShareUpdateView(LoginRequiredMixin, UpdateView):
-#     model = RideShare
-#     form_class = RideShareForm
-#     template_name = 'rides/ride_share_update.html'
-#     success_url = reverse_lazy('rides:my_ride_list')
-#
-#     def
-#
+class RideQuitView(LoginRequiredMixin, DeleteView):
+    model = RideShare
+    template_name = 'rides/ride_quit.html'
+    success_url = reverse_lazy('rides:my-ride-list')
+
+
+    def get_object(self, queryset=None):
+        ride_id = self.kwargs.get('pk')
+
+        return get_object_or_404(RideShare, ride_id=ride_id, sharer=self.request.user.userprofile)
+
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        messages.success(request, f"Ride #{self.object.id} has been quit")
+        return super().delete(request, *args, **kwargs)
 
 
 # Sharer search for ride

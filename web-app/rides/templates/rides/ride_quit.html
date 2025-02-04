@@ -1,0 +1,13 @@
+<!-- rides/ride_quit.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Confirm Quit Ride</h2>
+  <p>Are you sure you want to quit the ride to "{{ object.destination }}" scheduled at "{{ object.scheduled_datetime }}"?</p>
+
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Yes</button>
+    <a href="{% url 'rides:ride-detail' object.pk %}" class="btn btn-secondary">Back</a>
+  </form>
+{% endblock %}

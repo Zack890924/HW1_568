@@ -15,6 +15,7 @@ urlpatterns = [
     path('ride-join/<int:pk>', views.ride_join, name='ride-join'),
     path('driver-claim/<int:pk>/', views.driver_claim_ride, name='driver_claim_ride'),
     path('driver-complete/<int:pk>/', views.driver_complete_ride, name='driver_complete_ride'),
+    path('ride/<int:pk>/quit/', views.RideQuitView.as_view(), name='ride-quit'),
 
 
 ]
