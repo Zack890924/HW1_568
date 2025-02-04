@@ -6,6 +6,10 @@ from django.shortcuts import render, redirect
 from .forms import UserRegisterForm, UserProfileForm, DriverProfileForm
 # Create your views here.
 
+
+
+
+
 def register(request):
     form = UserRegisterForm()
     if request.method == 'POST':
