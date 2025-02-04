@@ -61,7 +61,7 @@
           {% endif %}
         </td>
         <td>
-          <a href="{% url 'rides:ride-detail' ride.id %}" class="btn btn-sm btn-info">Detail</a>
+          <a href="{% url 'rides:ride-detail' ride.id %}?from=my_ride_l" class="btn btn-sm btn-info">Detail</a>
         </td>
       </tr>
     {% endfor %}

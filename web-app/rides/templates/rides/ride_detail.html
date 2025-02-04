@@ -77,7 +77,11 @@
 
     <div style="margin-top: 20px;">
 <!--      <a href="javascript:history.back()" class="btn btn-primary">Back</a>-->
-      <a href="{% url 'rides:my-ride-list' %}" class="btn btn-primary">Back</a>
+      {% if request.GET.from == "my_ride_l" %}
+        <a href="{% url 'rides:my-ride-list' %}" class="btn btn-primary">Back</a>
+      {% elif request.GET.from == "ride_l" %}
+        <a href="{% url 'rides:ride-list' %}" class="btn btn-primary">Back</a>
+      {% endif %}
     </div>
 
   </div>

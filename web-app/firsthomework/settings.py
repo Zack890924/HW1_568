@@ -89,8 +89,8 @@ DATABASES = {
         'NAME': 'django_db',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
-        # 'HOST': 'localhost',  # This is the service name from docker-compose.yml
-        'HOST': 'db',
+        'HOST': 'localhost',  # This is the service name from docker-compose.yml
+        # 'HOST': 'db',
         'PORT': 5432,
     }
 }
