@@ -143,3 +143,12 @@ def driver_register_step2(request):
     else :
         driver_form = DriverProfileForm()
     return render(request, 'users/become_driver_step2.html', {'form': driver_form})
+
+
+def logout(request):
+    if request == 'POST':
+        logout(request)
+        messages.success(request, 'You have been logged out')
+        return render(request, 'users/logout.html')
+    else:
+        return render(request, 'home')
