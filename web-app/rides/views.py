@@ -37,15 +37,6 @@ class OpenRideListView(ListView):
         qs = qs.annotate(
             total_people=F('owner_passengers') + Coalesce(Sum('ride_share__passenger'), Value(0))
         )
-        # # 如果 Ride 有司机，则要求 total_people <= driver__maxPassengers；
-        # # 如果 Ride 没有司机，则暂时保留（后续根据当前用户类型再决定是否排除）
-        # qs = qs.filter(
-        #     Q(driver__isnull=True) | Q(total_people__lte=F('driver__maxPassengers'))
-        # )
-        #
-        # # 如果当前用户不是司机，则排除掉没有司机接单的 Ride（driver 为 NULL 的记录）
-        # if not self.request.user.userprofile.is_driver:
-        #     qs = qs.filter(driver__isnull=False)
 
         # 获取 GET 请求中的搜索参数
         destination = self.request.GET.get('destination', '').strip()
@@ -125,8 +116,16 @@ class MyRidesView(ListView):
         user = self.request.user
         user_profile = user.userprofile
 
+        my_confirmed = self.request.GET.get("my_confirmed")
+        if my_confirmed == 'on':
+            if hasattr(user, 'driverprofile'):
+                return Ride.objects.filter(driver=user.driverprofile, status="CONFIRMED")
+            else:
+                return Ride.objects.none()
+
         # 获取 GET 参数中的 status，如果有则使用该状态过滤
         status_query = self.request.GET.get('status')
+
         if status_query:
             owned = Ride.objects.filter(owner=user_profile, status=status_query)
             sharer_rides = RideShare.objects.filter(sharer=user_profile).select_related('ride')

@@ -13,7 +13,8 @@
 
 <div class="collapse show mb-3" id="toggleSearch">
   <div class="card card-body">
-    <form method="get" class="row g-3">
+    <form method="get" class="row gx-3 gy-2 align-items-center">
+      <!-- 状态选择框 -->
       <div class="col-auto">
         <label for="status" class="visually-hidden">Status</label>
         <select class="form-select" name="status" id="status">
@@ -23,8 +24,17 @@
           {% endfor %}
         </select>
       </div>
+
+      <!-- 复选框 -->
+      <div class="col-auto form-check d-flex align-items-center">
+        <input type="checkbox" class="form-check-input me-2" id="my_confirmed" name="my_confirmed"
+               {% if request.GET.my_confirmed == "on" %} checked{% endif %}>
+        <label for="my_confirmed" class="form-check-label">Show all my drive's ride</label>
+      </div>
+
+      <!-- 搜索按钮 -->
       <div class="col-auto">
-        <button type="submit" class="btn btn-primary mb-3">Search</button>
+        <button type="submit" class="btn btn-outline-primary">Search</button>
       </div>
     </form>
   </div>
