@@ -358,6 +358,9 @@ def driver_claim_ride(request, pk):
     if ride.total_amount_people() > driver_profile.maxPassengers:
         messages.error(request, 'Passengers size exceed total capacity')
         return redirect('rides:ride-list')
+    if ride.vehicle_type_request != driver_profile.vehicleType:
+        messages.error(request, 'Does not satisfy vehicle type request')
+        return redirect('rides:ride-list')
     if ride.special_request and ride.special_request != driver_profile.special_info:
         print(f"ride.special_request:{ride.special_request}")
         print(f"driver_profile.special_info:{driver_profile.special_info}")
@@ -382,6 +385,8 @@ def driver_complete_ride(request, pk):
         messages.success(request, f"You have successfully completed ride #{ride.id}!")
         return redirect('rides:ride-list')
     return render(request, 'rides/driver_complete.html', {'ride': ride})
+
+
 
 
 

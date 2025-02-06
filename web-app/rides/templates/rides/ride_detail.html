@@ -26,7 +26,12 @@
     {% endif %}
 
 
-
+  {% if ride.status == 'CONFIRMED' and user.is_authenticated and user.userprofile.is_driver and driver_claimed %}
+    <form action="{% url 'rides:driver_complete_ride' ride.pk %}" method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">Complete Ride</button>
+    </form>
+  {% endif %}
 
 <!--logic for Driver claim join Sharer join-->
    {% if ride.status == 'OPEN' and user.is_authenticated %}
@@ -34,17 +39,14 @@
     {% if user.userprofile == ride.owner %}
       <div class="action-buttons">
         <p>This is your own ride, you can edit or cancel it</p>
-        <a href="{% url 'rides:ride-edit' ride.pk %}?from={{request.GET.from }} " class="btn btn-primary">Edit</a>
+        <a href="{% url 'rides:ride-edit' ride.pk %}?from={{ request.GET.from }}" class="btn btn-primary">Edit</a>
         <a href="{% url 'rides:ride-cancel' ride.pk %}" class="btn btn-danger">Cancel</a>
       </div>
     {% else %}
       <div class="action-buttons">
-<!--        driver-->
         {% if user.userprofile.is_driver %}
-<!--        is there a bug? A driver seems cannot enter this block-->
-          {% if driver_claimed %}
-            <p>You have already claimed this ride.</p>
-          {% elif driver_join %}
+<!--          driver-->
+          {% if driver_join %}
             <p>You have already joined this ride.</p>
           {% else %}
             <form method="post" action="{% url 'rides:driver_claim_ride' ride.pk %}">
@@ -56,8 +58,8 @@
               <button type="submit" class="btn btn-primary">Join</button>
             </form>
           {% endif %}
-<!--        sharer-->
         {% else %}
+<!--          sharer-->
           {% if not has_joined %}
             <form method="post" action="{% url 'rides:ride-join' ride.pk %}">
               {% csrf_token %}
@@ -65,7 +67,7 @@
             </form>
           {% else %}
             <div class="action-buttons">
-              <a href="{% url 'rides:ride-quit' ride.pk %}" class="btn btn-danger">Quit</a></a>
+              <a href="{% url 'rides:ride-quit' ride.pk %}" class="btn btn-danger">Quit</a>
             </div>
           {% endif %}
         {% endif %}
@@ -76,8 +78,8 @@
 
 
 
+
     <div style="margin-top: 20px;">
-<!--      <a href="javascript:history.back()" class="btn btn-primary">Back</a>-->
       {% if request.GET.from == "my_ride_l" %}
         <a href="{% url 'rides:my-ride-list' %}" class="btn btn-primary">Back</a>
       {% elif request.GET.from == "ride_l" %}

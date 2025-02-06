@@ -42,16 +42,22 @@
                         <l1>
                             <a class="nav-link" href="{% url 'users:edit_profile' %}">Edit Profile</a>
                         </l1>
-                        {% if not user.userprofile.is_driver %}
+                        {% if user.userprofile.is_driver %}
+                            {% if user.driverprofile %}
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{% url 'users:update_driver' %}">Update Driver Profile</a>
+                                </li>
+                            {% else %}
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{% url 'users:driver_register_step2' %}">Complete Driver Registration</a>
+                                </li>
+                            {% endif %}
+                        {% else %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'users:become_driver' %}">Become a Driver</a>
                             </li>
-
-                        {% else %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'users:update_driver' %}">Update Driver Profile</a>
-                            </li>
                         {% endif %}
+
                     {% endif %}
                 </ul>
                 <!-- right side -->

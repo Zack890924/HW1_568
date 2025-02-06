@@ -23,9 +23,14 @@ def register(request):
                     user.email = user_form.cleaned_data.get('email')
                     user.save()
 
+                    want_become_driver = profile_form.cleaned_data.get('is_driver')
+
+
+
                     profile = profile_form.save(commit=False)
                     profile.user = user
                     profile.name = user.username
+                    profile.is_driver = False
                     profile.save()
             except Exception as e:
                 messages.error(request, 'encountered error')
@@ -38,7 +43,8 @@ def register(request):
 
             if new_user:
                 login(request, user)
-                if profile.is_driver:
+                if want_become_driver:
+                    messages.info(request, "Please complete your driver registration")
                     return redirect('users:driver_register_step2')
                 else:
                     messages.success(request, f'Account created for {username}!')
@@ -144,11 +150,17 @@ def driver_register_step2(request):
         driver_form = DriverProfileForm()
     return render(request, 'users/become_driver_step2.html', {'form': driver_form})
 
+@login_required()
+def driverprofile_status(request):
 
-def logout(request):
-    if request == 'POST':
-        logout(request)
-        messages.success(request, 'You have been logged out')
-        return render(request, 'users/logout.html')
-    else:
-        return render(request, 'home')
+    has_driverprofile = False
+    if request.user.is_authenticated:
+        try:
+
+            _ = request.user.driverprofile
+            has_driverprofile = True
+        except Exception:
+            has_driverprofile = False
+    return {'has_driverprofile': has_driverprofile}
+
+
