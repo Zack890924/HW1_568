@@ -91,3 +91,15 @@ class DriverProfileForm(forms.ModelForm):
             else:
                 cleaned_data['vehicleType'] = other_vehicle_type
         return cleaned_data
+
+class UserUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'email']
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+
+        if User.objects.exclude(pk=self.instance.pk).filter(username=username).exists():
+            raise forms.ValidationError("This username is already in use.")
+        return username

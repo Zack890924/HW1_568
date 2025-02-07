@@ -1,5 +1,7 @@
-<!-- templates/rides/ride_list.html -->
+<!-- rides/templates/rides/ride_list.html -->
 {% extends 'base.html' %}
+{% load static %}
+{% block title %}Open Ride List{% endblock %}
 {% block content %}
 <div class="container mt-4">
     <h2>Search Rides</h2>
@@ -20,17 +22,15 @@
             <label for="passengers" class="form-label">Passengers Load</label>
             <input type="number" class="form-control" id="passengers" name="passengers" min="1" value="{{ passengers }}">
         </div>
-        {% if user.is_authenticated %}
-            {% if user.userprofile.is_driver%}
-                <div class="col-md-3">
-                    <label for="special_request" class="form-label">Special Request</label>
-                    <input type="text" class="form-control" id="special_request" name="special_request" value="{{ special_request }}">
-                </div>
-                <div class="col-md-3">
-                    <label for="cap_check" class="form-label">Vehicle Capacity Check</label>
-                    <input type="number" class="form-control" id="cap_check" name="cap_check" min="1" value="{{ cap_check }}">
-                </div>
-            {% endif %}
+        {% if user.is_authenticated and user.userprofile.is_driver %}
+            <div class="col-md-3">
+                <label for="special_request" class="form-label">Special Request</label>
+                <input type="text" class="form-control" id="special_request" name="special_request" value="{{ special_request }}">
+            </div>
+            <div class="col-md-3">
+                <label for="cap_check" class="form-label">Vehicle Capacity Check</label>
+                <input type="number" class="form-control" id="cap_check" name="cap_check" min="1" value="{{ cap_check }}">
+            </div>
         {% endif %}
         <div class="col-12">
             <button type="submit" class="btn btn-primary">Search</button>
@@ -38,14 +38,16 @@
     </form>
 
     <h2>Open Rides</h2>
+
+
     <nav>
         <ul class="pagination justify-content-center">
             {% if page_obj.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?page=1">First</a>
+                    <a class="page-link" href="?page=1{% if query_string %}&{{ query_string }}{% endif %}">First</a>
                 </li>
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">Previous</a>
                 </li>
             {% else %}
                 <li class="page-item disabled">
@@ -62,10 +64,10 @@
 
             {% if page_obj.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">Next</a>
                 </li>
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if query_string %}&{{ query_string }}{% endif %}">Last</a>
                 </li>
             {% else %}
                 <li class="page-item disabled">
@@ -77,16 +79,16 @@
             {% endif %}
         </ul>
     </nav>
+
     <div class="list-group">
         {% for ride in rides_list %}
-        <a href="{% url 'rides:ride-detail' ride.pk %}?from=ride_l"
+        <a href="{% url 'rides:ride-detail' ride.pk %}?from=ride_l{% if query_string %}&{{ query_string }}{% endif %}"
            class="list-group-item list-group-item-action">
             <div class="d-flex justify-content-between">
                 <div>
                     <h5>{{ ride.destination }}</h5>
                     <small class="text-muted">
                         {{ ride.scheduled_datetime|date:"Y-m-d H:i" }}
-<!--                        | Passengers: {{ ride.total_amount_people }}-->
                     </small>
                 </div>
                 <span class="badge bg-{% if ride.status == 'OPEN' %}warning{% else %}success{% endif %}">

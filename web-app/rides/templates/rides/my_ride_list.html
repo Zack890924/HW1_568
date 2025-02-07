@@ -1,20 +1,18 @@
 <!-- rides/templates/rides/my_ride_list.html -->
-
-<!-- templates/rides/ride_list.html -->
 {% extends 'base.html' %}
-{% block title %}Open Ride List{% endblock %}
+{% load static %}
+{% block title %}My Rides{% endblock %}
 
 {% block content %}
 <!-- Toggle  -->
 <button class="btn btn-secondary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#toggleSearch">
-  Expend (collapse)
+  Expand (collapse)
 </button>
-
 
 <div class="collapse show mb-3" id="toggleSearch">
   <div class="card card-body">
     <form method="get" class="row gx-3 gy-2 align-items-center">
-      <!-- 状态选择框 -->
+
       <div class="col-auto">
         <label for="status" class="visually-hidden">Status</label>
         <select class="form-select" name="status" id="status">
@@ -25,30 +23,32 @@
         </select>
       </div>
 
-      <!-- 复选框 -->
+
       <div class="col-auto form-check d-flex align-items-center">
         <input type="checkbox" class="form-check-input me-2" id="my_confirmed" name="my_confirmed"
                {% if request.GET.my_confirmed == "on" %} checked{% endif %}>
         <label for="my_confirmed" class="form-check-label">Show all my drive's ride</label>
       </div>
 
-      <!-- 搜索按钮 -->
+
       <div class="col-auto">
         <button type="submit" class="btn btn-outline-primary">Search</button>
       </div>
     </form>
   </div>
 </div>
+
 <h2>My Rides</h2>
-<!-- 分页导航 -->
+
+
 <nav>
     <ul class="pagination justify-content-center">
         {% if page_obj.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?page=1">First</a>
+                <a class="page-link" href="?page=1{% if query_string %}&{{ query_string }}{% endif %}">First</a>
             </li>
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">Previous</a>
             </li>
         {% else %}
             <li class="page-item disabled">
@@ -65,10 +65,10 @@
 
         {% if page_obj.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">Next</a>
             </li>
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if query_string %}&{{ query_string }}{% endif %}">Last</a>
             </li>
         {% else %}
             <li class="page-item disabled">
@@ -112,13 +112,16 @@
           {% endif %}
         </td>
         <td>
-          <a href="{% url 'rides:ride-detail' ride.id %}?from=my_ride_l" class="btn btn-sm btn-info">Detail</a>
+          <a href="{% url 'rides:ride-detail' ride.id %}?from=my_ride_list{% if query_string %}&{{ query_string }}{% endif %}"
+             class="btn btn-sm btn-info">
+            Detail
+          </a>
         </td>
       </tr>
     {% endfor %}
     </tbody>
   </table>
 {% else %}
-  <p>No open rides found.</p>
+  <p>No rides found.</p>
 {% endif %}
 {% endblock %}

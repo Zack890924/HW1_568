@@ -45,7 +45,11 @@ class RideRequestForm(forms.ModelForm):
         fields = ['destination', 'scheduled_datetime', 'owner_passengers',
                   'can_shared', 'special_request', 'vehicle_type_request']
         widgets = {
-            'scheduled_datetime': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'scheduled_datetime': forms.DateTimeInput(attrs={
+                'type': 'datetime-local',
+                'class': 'form-control',
+                'lang': 'en'
+            }),
             'destination': forms.TextInput(attrs={'class': 'form-control'}),
             'owner_passengers': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
             'can_shared': forms.CheckboxInput(attrs={'class': 'form-check-input'}),

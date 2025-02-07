@@ -101,6 +101,11 @@ class OpenRideListView(ListView):
         context['passengers'] = self.request.GET.get('passengers', '')
         context['special_request'] = self.request.GET.get('special_request', '')
         context['cap_check'] = self.request.GET.get('cap_check', '')
+
+        querydict = self.request.GET.copy()
+        if 'page' in querydict:
+            querydict.pop('page')
+        context['query_string'] = querydict.urlencode()
         return context
 
 
@@ -148,6 +153,10 @@ class MyRidesView(ListView):
         context = super().get_context_data(**kwargs)
         # 将 Ride 模型的状态选项传递给模板
         context['ride_status_choices'] = Ride.Status.choices
+        querydict = self.request.GET.copy()
+        if 'page' in querydict:
+            querydict.pop('page')
+        context['query_string'] = querydict.urlencode()
         return context
 
 
@@ -334,16 +343,16 @@ def driver_search_ride(request):
 def send_email_for_ride(ride):
     subject = f"Your ride {ride.id} has been claimed"
     email_messages = f'''
-        Dear {ride.owner.name}, your ride to {ride.destination} has been claimed by a driver!
+        Dear ride share platform user, your ride to {ride.destination} has been claimed by a driver!
         Ride detail: 
             - Scheduled time: {ride.scheduled_datetime}
             - Destination: {ride.destination}
-            - Driver: {ride.driver}
+            - Driver: {ride.driver.driver.username}
     '''
     recipients = [ride.owner.user.email]
     for ride_share in ride.ride_share.all():
         recipients.append(ride_share.sharer.user.email)
-
+    print("Email recipients:", recipients)
     send_mail(subject, email_messages, settings.DEFAULT_FROM_EMAIL, recipients)
 
 
@@ -358,7 +367,7 @@ def driver_claim_ride(request, pk):
     if ride.total_amount_people() > driver_profile.maxPassengers:
         messages.error(request, 'Passengers size exceed total capacity')
         return redirect('rides:ride-list')
-    if ride.vehicle_type_request != driver_profile.vehicleType:
+    if ride.vehicle_type_request and ride.vehicle_type_request != driver_profile.vehicleType:
         messages.error(request, 'Does not satisfy vehicle type request')
         return redirect('rides:ride-list')
     if ride.special_request and ride.special_request != driver_profile.special_info:
@@ -372,6 +381,23 @@ def driver_claim_ride(request, pk):
 
 
     send_email_for_ride(ride)
+
+    if ride.driver and hasattr(ride.driver, 'driver') and ride.driver.driver.email:
+        driver_subject = f"You have claimed ride #{ride.id}"
+        driver_message = (
+            f"Dear {ride.driver.driver.username},\n\n"
+            f"You have successfully claimed ride #{ride.id}.\n"
+            f"Ride Details:\n"
+            f" - Destination: {ride.destination}\n"
+            f" - Scheduled Time: {ride.scheduled_datetime}\n\n"
+            "Please contact the ride owner for further details.\n\n"
+            f"Ride Owner Contact Information:\n"
+            f" - Name: {ride.owner.name}\n"
+            f" - Email: {ride.owner.user.email}\n"
+            f" - Email: {ride.owner.phone}\n"
+            "Your Ride Sharing Team"
+        )
+        send_mail(driver_subject, driver_message, settings.DEFAULT_FROM_EMAIL, [ride.driver.driver.email])
     messages.success(request, f"You have successfully claimed ride #{ride.id}!")
     return redirect('rides:ride-list')
 
