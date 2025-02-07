@@ -165,17 +165,8 @@ class SearchRideShareForm(BaseRideShareForm):
 
         return cleaned_data
 
-# TODO vechnicle type
-class DriverSearchForm(BaseRideShareForm):
-    destination = forms.CharField(
-        max_length=100,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Destination'}))
 
-    vehicle_type = forms.CharField(
-        max_length=100,
-        required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Vehicle Type'})
-    )
+
 
 
 

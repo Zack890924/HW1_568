@@ -58,11 +58,11 @@ def register(request):
     else :
         user_form = UserRegisterForm()
         profile_form = UserProfileForm()
-        # driver_form = DriverProfileForm()
+
     context = {
         'user_form': user_form,
         'profile_form': profile_form,
-        # 'driver_form': driver_form
+
     }
     return render(request, 'users/register.html', context)
 
@@ -152,17 +152,7 @@ def driver_register_step2(request):
         driver_form = DriverProfileForm()
     return render(request, 'users/become_driver_step2.html', {'form': driver_form})
 
-@login_required()
-def driverprofile_status(request):
 
-    has_driverprofile = False
-    if request.user.is_authenticated:
-        try:
 
-            _ = request.user.driverprofile
-            has_driverprofile = True
-        except Exception:
-            has_driverprofile = False
-    return {'has_driverprofile': has_driverprofile}
 
 

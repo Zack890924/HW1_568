@@ -12,7 +12,7 @@ from datetime import datetime
 from .models import Ride, RideShare
 from django.shortcuts import render
 from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
-from .forms import RideRequestForm, DriverSearchForm, SearchRideShareForm, RideShareForm
+from .forms import RideRequestForm,RideShareForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .mixins import DriverRequiredMixin, OwnerRequiredMixin
 
@@ -38,7 +38,7 @@ class OpenRideListView(ListView):
             total_people=F('owner_passengers') + Coalesce(Sum('ride_share__passenger'), Value(0))
         )
 
-        # 获取 GET 请求中的搜索参数
+
         destination = self.request.GET.get('destination', '').strip()
         if destination:
             qs = qs.filter(destination__icontains=destination)
@@ -47,7 +47,7 @@ class OpenRideListView(ListView):
         arrival_time_start = self.request.GET.get('arrival_time_start', '').strip()
         arrival_time_end = self.request.GET.get('arrival_time_end', '').strip()
 
-        # datetime-local格式 'YYYY-MM-DDTHH:MM'
+        #  'YYYY-MM-DDTHH:MM'
         if arrival_time_start:
             try:
                 start_datetime = datetime.strptime(arrival_time_start, '%Y-%m-%dT%H:%M')
@@ -68,7 +68,7 @@ class OpenRideListView(ListView):
 
         cap_check = self.request.GET.get('cap_check', '').strip()
         if cap_check:
-            # qs = qs.filter(total_people__lte=self.request.user.driverprofile.maxPassengers)
+
             qs = qs.filter(total_people__lte=cap_check)
 
         # 已经搭乘的乘客数量搜索
@@ -80,13 +80,12 @@ class OpenRideListView(ListView):
             except ValueError:
                 pass
 
-        # 1. 如果当前用户正好是 ride 的 owner，则排除该 ride；
-        # 2. 如果当前用户不是 owner，但 ride 的 can_shared 为 False，则也排除，除非是司机
+
         if self.request.user.is_authenticated:
             current_profile = self.request.user.userprofile
             # exclude the ride which user already join
             qs = qs.exclude(ride_share__sharer=current_profile)
-            # 如果当前用户不是司机，则筛掉不是owner的
+
             if not self.request.user.userprofile.is_driver:
                 qs = qs.exclude(owner=current_profile).filter(can_shared=True)
 
@@ -94,7 +93,7 @@ class OpenRideListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # 将搜索参数传递到模板，用于回显搜索条件
+
         context['destination'] = self.request.GET.get('destination', '')
         context['arrival_time_start'] = self.request.GET.get('arrival_time_start', '')
         context['arrival_time_end'] = self.request.GET.get('arrival_time_end', '')
@@ -249,37 +248,6 @@ class RideQuitView(LoginRequiredMixin, DeleteView):
         return super().delete(request, *args, **kwargs)
 
 
-# Sharer search for ride
-@login_required()
-def ride_search(request):
-    form = SearchRideShareForm(request.GET or None)
-    rides = []
-
-    if form.is_valid():
-        destination = form.cleaned_data['destination']
-        earliest_dt = form.cleaned_data['earliest_date']
-        latest_dt = form.cleaned_data['latest_date']
-        passengers_size = form.cleaned_data['passengers_size'] or 1
-
-
-        rides = (Ride.objects.filter(status = 'OPEN', can_shared = True)
-                 .annotate(available_seats=F('driver__capacity') - 1 - F('owner_passengers')))
-
-
-        if destination:
-            rides = rides.filter(destination__icontains=destination)
-
-        if earliest_dt:
-            rides = rides.filter(scheduled_datetime__gte=earliest_dt)
-        if latest_dt:
-            rides = rides.filter(scheduled_datetime__lte=latest_dt)
-
-        rides = rides.filter(available_seats__gte=passengers_size)
-
-
-
-        rides = rides.order_by('-created_at')
-    return render(request, 'rides/ride_search.html', {'rides': rides, 'form': form})
 
 
 @login_required()
@@ -313,31 +281,6 @@ def ride_join(request, pk):
         form = RideShareForm()
     return render(request, 'rides/ride_join.html', {'form': form, 'ride': ride})
 
-# I integrate search function of user and driver together, so this function may not be useful anymore
-@login_required()
-def driver_search_ride(request):
-    driver_profile = getattr(request.user, 'driverprofile', None)
-    if driver_profile is None:
-        messages.error(request, 'You are not a driver')
-        return redirect('rides:ride-list')
-    form = DriverSearchForm(request.GET or None)
-    valid_rides = []
-    if form.is_valid():
-        destination = form.cleaned_data['destination']
-        rides = Ride.objects.filter(status = 'OPEN', can_shared = True)
-        if destination:
-            rides = rides.filter(destination__icontains=destination)
-            for ride in rides:
-                if ride.vehicle_type_request and driver_profile.vehicle_type != ride.vehicle_type_request:
-                    continue
-                if ride.total_amount_people() > driver_profile.capacity:
-                    continue
-                # TODO Special request
-                valid_rides.append(ride)
-    return render(request,
-                  'rides/driver_search.html',
-                  {'rides': valid_rides, 'form': form}
-                  )
 
 
 def send_email_for_ride(ride):
